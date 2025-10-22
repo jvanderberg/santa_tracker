@@ -143,6 +143,31 @@ describe('Database', () => {
         expect(sighting.reported_age).toBeGreaterThanOrEqual(0);
       });
     });
+
+    it('should correctly handle DST for October dates in America/Chicago', () => {
+      // Oct 22, 2025 in America/Chicago (CDT, UTC-5)
+      // Midnight CDT = 05:00:00 UTC
+      // Create sightings just after midnight CDT
+      db.createSighting({
+        latitude: 41.8781,
+        longitude: -87.7846,
+        sighted_at: '2025-10-22T05:10:00.000Z', // 12:10am CDT
+        details: 'Just after midnight CDT',
+        timezone: 'America/Chicago',
+      });
+
+      db.createSighting({
+        latitude: 41.88,
+        longitude: -87.79,
+        sighted_at: '2025-10-22T04:50:00.000Z', // 11:50pm CDT previous day
+        details: 'Before midnight CDT',
+        timezone: 'America/Chicago',
+      });
+
+      const sightings = db.getSightings('2025-10-22', 'America/Chicago');
+      expect(sightings).toHaveLength(1);
+      expect(sightings[0].details).toBe('Just after midnight CDT');
+    });
   });
 
   describe('getSightingById', () => {
