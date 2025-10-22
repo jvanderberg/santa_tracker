@@ -1,1 +1,9 @@
 npx lint-staged
+
+# Run tests
+cd client && npm test -- --run
+cd ../server && npm test
+
+# Run builds
+cd ../client && npm run build
+cd ../server && npm run build
