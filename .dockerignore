@@ -1,0 +1,46 @@
+# Node modules
+**/node_modules
+**/npm-debug.log
+
+# Build outputs
+**/dist
+client/dist
+
+# Development files
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Testing
+**/coverage
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database files (will be in volume)
+*.db
+*.db-journal
+
+# Fly.io
+fly.toml
+
+# Documentation
+README.md
+*.md
+
+# CI/CD
+.github

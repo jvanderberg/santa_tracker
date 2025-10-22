@@ -1,0 +1,121 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { getSightings, createSighting } from './api';
+import type { Sighting } from '../types';
+
+// Mock fetch globally
+global.fetch = vi.fn();
+
+describe('API Service', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('getSightings', () => {
+    it('fetches sightings for today by default', async () => {
+      const mockSightings: Sighting[] = [
+        {
+          id: 1,
+          latitude: 41.8781,
+          longitude: -87.7846,
+          sighted_at: new Date().toISOString(),
+          reported_at: new Date().toISOString(),
+          details: 'Test sighting',
+          sighted_age: 10,
+          reported_age: 5,
+        },
+      ];
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockSightings,
+      });
+
+      const result = await getSightings();
+
+      expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/sightings');
+      expect(result).toEqual(mockSightings);
+    });
+
+    it('fetches sightings for a specific date', async () => {
+      const mockSightings: Sighting[] = [];
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockSightings,
+      });
+
+      const result = await getSightings('2024-12-25');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:3000/api/sightings?date=2024-12-25&timezone=America%2FChicago'
+      );
+      expect(result).toEqual(mockSightings);
+    });
+
+    it('throws an error when fetch fails', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      });
+
+      await expect(getSightings()).rejects.toThrow('Failed to fetch sightings');
+    });
+  });
+
+  describe('createSighting', () => {
+    it('creates a new sighting', async () => {
+      const newSighting = {
+        latitude: 41.8781,
+        longitude: -87.7846,
+        sighted_at: new Date().toISOString(),
+        details: 'New sighting',
+        timezone: 'America/Chicago',
+      };
+
+      const createdSighting: Sighting = {
+        id: 1,
+        ...newSighting,
+        reported_at: new Date().toISOString(),
+        sighted_age: 0,
+        reported_age: 0,
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => createdSighting,
+      });
+
+      const result = await createSighting(newSighting);
+
+      expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/sightings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newSighting),
+      });
+      expect(result).toEqual(createdSighting);
+    });
+
+    it('throws an error when creation fails', async () => {
+      const newSighting = {
+        latitude: 41.8781,
+        longitude: -87.7846,
+        sighted_at: new Date().toISOString(),
+        details: 'New sighting',
+        timezone: 'America/Chicago',
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+      });
+
+      await expect(createSighting(newSighting)).rejects.toThrow('Failed to create sighting');
+    });
+  });
+});
