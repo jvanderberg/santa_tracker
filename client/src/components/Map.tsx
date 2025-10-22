@@ -3,13 +3,15 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import type { Sighting } from '../types';
 import { getSightings, getConfig } from '../services/api';
-import { getGeofenceConfig } from '../lib/geofence';
+import { getGeofenceConfig, calculateDistance } from '../lib/geofence';
 import { formatTimeAgo } from '../lib/timeFormat';
+import type { FilterOptions } from './FilterPopup';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
 
 const DEFAULT_ZOOM = 13;
+const NEAR_ME_RADIUS_MILES = 0.25;
 
 // Get marker color based on sighting age in minutes
 function getMarkerColor(ageMinutes: number): string {
@@ -39,9 +41,10 @@ function createColoredIcon(color: string) {
 
 interface MapProps {
   sightings?: Sighting[];
+  filters?: FilterOptions;
 }
 
-export function Map({ sightings: propSightings }: MapProps) {
+export function Map({ sightings: propSightings, filters }: MapProps) {
   const [fetchedSightings, setFetchedSightings] = useState<Sighting[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +52,7 @@ export function Map({ sightings: propSightings }: MapProps) {
     getGeofenceConfig().centerLat,
     getGeofenceConfig().centerLon,
   ]);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   // Fetch config to set map center
   useEffect(() => {
@@ -94,7 +98,64 @@ export function Map({ sightings: propSightings }: MapProps) {
     return () => clearInterval(intervalId);
   }, [propSightings]);
 
+  // Get user location when "near me" filter is active
+  useEffect(() => {
+    if (filters?.location === 'nearme' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const userLoc = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setUserLocation(userLoc);
+          // Recenter map on user location
+          setMapCenter([userLoc.lat, userLoc.lng]);
+        },
+        error => {
+          // Handle location permission errors gracefully
+          console.error('Location error:', error);
+          setUserLocation(null);
+          // Show a non-intrusive error - don't block the entire map
+          if (error.code === error.PERMISSION_DENIED) {
+            alert(
+              'Location permission denied. Please enable location services in your browser to use "Near me" filter.'
+            );
+          } else {
+            alert('Unable to get your location. Please try the location filter again.');
+          }
+        }
+      );
+    } else if (filters?.location === 'nearme' && !('geolocation' in navigator)) {
+      alert('Geolocation is not supported by your browser.');
+    }
+  }, [filters?.location]);
+
   const sightings = propSightings ?? fetchedSightings;
+
+  // Apply filters to sightings
+  const filteredSightings = sightings.filter(sighting => {
+    // Time filter
+    const timeHours = filters?.timeHours ?? 24;
+    const timeMinutes = timeHours * 60;
+    if (sighting.sighted_age > timeMinutes) {
+      return false;
+    }
+
+    // Location filter
+    if (filters?.location === 'nearme' && userLocation) {
+      const distance = calculateDistance(
+        userLocation.lat,
+        userLocation.lng,
+        sighting.latitude,
+        sighting.longitude
+      );
+      if (distance > NEAR_ME_RADIUS_MILES) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   if (loading) {
     return (
@@ -126,7 +187,7 @@ export function Map({ sightings: propSightings }: MapProps) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {sightings.map(sighting => {
+        {filteredSightings.map(sighting => {
           const markerColor = getMarkerColor(sighting.sighted_age);
           const markerIcon = createColoredIcon(markerColor);
 
