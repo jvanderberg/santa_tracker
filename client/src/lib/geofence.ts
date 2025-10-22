@@ -16,10 +16,10 @@ export interface GeofenceConfig {
  */
 export function getGeofenceConfig(): GeofenceConfig {
   return {
-    centerLat: Number(import.meta.env.VITE_GEOFENCE_CENTER_LAT) || 38.5,
-    centerLon: Number(import.meta.env.VITE_GEOFENCE_CENTER_LON) || -117.0,
-    radiusMiles: Number(import.meta.env.VITE_GEOFENCE_RADIUS_MILES) || 5,
-    geoname: import.meta.env.VITE_GEONAME || 'Springfield',
+    centerLat: Number(import.meta.env.GEOFENCE_CENTER_LAT) || 38.5,
+    centerLon: Number(import.meta.env.GEOFENCE_CENTER_LON) || -117.0,
+    radiusMiles: Number(import.meta.env.GEOFENCE_RADIUS_MILES) || 5,
+    geoname: import.meta.env.GEONAME || 'Springfield',
   };
 }
 
