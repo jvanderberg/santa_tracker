@@ -91,28 +91,28 @@ export class Database {
     // Parse the local date (YYYY-MM-DD)
     const [year, month, day] = localDate.split('-').map(Number);
 
-    // Create date at midnight in the specified timezone
-    // For America/Chicago: CST is UTC-6, CDT is UTC-5
-    // We'll approximate with UTC-6 for now (can be improved with proper timezone library)
-    const offsetHours = this.getTimezoneOffset(timezone);
+    // Get the offset for this specific date (handles DST correctly)
+    const dateInTimezone = new Date(year, month - 1, day, 12, 0, 0); // Use noon to avoid edge cases
+    const offsetMs = this.getTimezoneOffsetMs(dateInTimezone, timezone);
 
-    // Start of day in local time -> GMT
-    const startLocal = new Date(Date.UTC(year, month - 1, day, -offsetHours, 0, 0, 0));
-    const endLocal = new Date(Date.UTC(year, month - 1, day, -offsetHours + 24, 0, 0, 0));
+    // Start of day at midnight in the target timezone
+    const startOfDayUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+    const startGMT = new Date(startOfDayUTC.getTime() + offsetMs);
+    const endGMT = new Date(startGMT.getTime() + 24 * 60 * 60 * 1000);
 
     return {
-      startGMT: startLocal.toISOString(),
-      endGMT: endLocal.toISOString(),
+      startGMT: startGMT.toISOString(),
+      endGMT: endGMT.toISOString(),
     };
   }
 
-  private getTimezoneOffset(timezone: string): number {
-    // Simple mapping for America/Chicago
-    // In production, use a library like 'luxon' or 'date-fns-tz'
-    if (timezone === 'America/Chicago') {
-      return -6; // CST offset (ignoring DST for now)
-    }
-    return 0; // UTC default
+  private getTimezoneOffsetMs(date: Date, timezone: string): number {
+    // Get the date's representation in the target timezone
+    const tzDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+    // Get the date's representation in UTC
+    const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+    // The difference is the timezone offset
+    return utcDate.getTime() - tzDate.getTime();
   }
 
   private getTodayInTimezone(timezone: string): string {
