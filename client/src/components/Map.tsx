@@ -4,6 +4,7 @@ import L from 'leaflet';
 import type { Sighting } from '../types';
 import { getSightings, getConfig } from '../services/api';
 import { getGeofenceConfig } from '../lib/geofence';
+import { formatTimeAgo } from '../lib/timeFormat';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
@@ -138,7 +139,7 @@ export function Map({ sightings: propSightings }: MapProps) {
               <Popup>
                 <div className="p-2">
                   <p className="font-semibold">{sighting.details}</p>
-                  <p className="text-sm text-gray-600">{sighting.sighted_age} minutes ago</p>
+                  <p className="text-sm text-gray-600">{formatTimeAgo(sighting.sighted_age)}</p>
                 </div>
               </Popup>
             </Marker>
