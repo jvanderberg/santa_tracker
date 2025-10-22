@@ -1,24 +1,23 @@
-# fly.toml app configuration file generated for santa-tracker
+# fly.toml app configuration file generated for santa-tracker on 2025-10-22T04:17:52Z
+#
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "santa-tracker"
-primary_region = "ord"
+app = 'santa-tracker'
+primary_region = 'ord'
 
 [build]
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "stop"
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
-  processes = ["app"]
+  processes = ['app']
 
 [[vm]]
-  memory = "256mb"
-  cpu_kind = "shared"
+  memory = '256mb'
+  cpu_kind = 'shared'
   cpus = 1
-
-[mounts]
-  source = "santa_data"
-  destination = "/data"
+  memory_mb = 256
