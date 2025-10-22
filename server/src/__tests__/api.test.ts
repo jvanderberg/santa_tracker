@@ -66,6 +66,34 @@ describe('API Endpoints', () => {
 
       await request(app).post('/api/sightings').send(invalidData).expect(400);
     });
+
+    it('should return 400 for sighting outside geofence', async () => {
+      // Point approximately 10 miles north of Oak Park (outside 5 mile default radius)
+      const outsideGeofence = {
+        latitude: 42.0231,
+        longitude: -87.7846,
+        sighted_at: new Date().toISOString(),
+        details: 'Too far away',
+        timezone: 'America/Chicago',
+      };
+
+      const response = await request(app).post('/api/sightings').send(outsideGeofence).expect(400);
+
+      expect(response.body.error).toMatch(/geofence|location/i);
+    });
+
+    it('should accept sighting inside geofence', async () => {
+      // Point approximately 1 mile from Oak Park (inside 5 mile default radius)
+      const insideGeofence = {
+        latitude: 41.8926, // ~1 mile north
+        longitude: -87.7846,
+        sighted_at: new Date().toISOString(),
+        details: 'Close enough',
+        timezone: 'America/Chicago',
+      };
+
+      await request(app).post('/api/sightings').send(insideGeofence).expect(201);
+    });
   });
 
   describe('GET /api/sightings', () => {

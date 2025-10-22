@@ -7,12 +7,53 @@
 - Refactor if needed
 - No code without tests
 
+## Error Handling Philosophy
+**PREVENT ERRORS UP FRONT, COMMUNICATE CLEARLY WHEN UNAVOIDABLE**
+
+### Prevention First
+- Validate and constrain input at the UI level before submission
+- Disable submit buttons when data is invalid
+- Provide real-time feedback on form fields
+- Show visual indicators of constraints (e.g., geofence boundary on map)
+- Use appropriate input types and constraints (min/max, required, pattern)
+
+### Meaningful Error Messages
+When errors cannot be prevented, communicate them clearly to users:
+- **Simple language:** Avoid technical jargon ("You're outside the allowed area" not "Geofence validation failed")
+- **Actionable:** Tell users what they need to do ("Move the marker closer to Oak Park")
+- **Specific:** Explain the exact problem ("Location must be within 5 miles of Oak Park, IL")
+- **Context-aware:** Show errors near where they occur (inline validation, not just generic alerts)
+
+### Error Message Examples
+- ❌ Bad: "Failed to create sighting"
+- ✅ Good: "Location is outside the Oak Park area. Please select a location within 5 miles."
+
+- ❌ Bad: "Invalid input"
+- ✅ Good: "Please describe what you saw"
+
+- ❌ Bad: "API error 400"
+- ✅ Good: "Unable to submit sighting. Please check your connection and try again."
+
 ## Requirements
 
 ### Map Configuration
 - Default center: Oak Park, IL (41.8781° N, 87.7846° W)
 - Default zoom level: 13
 - Map library: Leaflet via react-leaflet
+
+### Geofence
+- Restricts sighting submissions to a configurable radius around a center point
+- Default center: Oak Park, IL (41.8781° N, 87.7846° W)
+- Default radius: 5 miles
+- Configurable via environment variables at build time:
+  - `GEOFENCE_CENTER_LAT`: Center latitude (default: 41.8781)
+  - `GEOFENCE_CENTER_LON`: Center longitude (default: -87.7846)
+  - `GEOFENCE_RADIUS_MILES`: Radius in miles (default: 5)
+  - `GEONAME` (server) / `VITE_GEONAME` (client): Display name for location (default: "Oak Park, IL")
+- Client-side validation: Shows warning and disables submit button when location is outside geofence
+- Visual indicator: Displays semi-transparent red circle on location picker map showing geofence boundary
+- Server-side validation: Returns 400 error with user-friendly message if location is outside geofence
+- Uses Haversine formula for distance calculation
 
 ### Location Input
 - Click on map to set location
@@ -58,6 +99,12 @@
 
 ### POST /api/sightings
 Submit new sighting
+
+**Validation:**
+- All required fields must be present
+- Latitude and longitude must be numbers
+- Location must be within configured geofence (returns 400 if outside)
+
 **Request Body:**
 ```typescript
 {
@@ -68,7 +115,7 @@ Submit new sighting
   timezone: string;    // IANA timezone (for context/logging)
 }
 ```
-**Response:**
+**Response (201):**
 ```typescript
 {
   id: number;
@@ -79,6 +126,12 @@ Submit new sighting
   details: string;
   sighted_age: number;  // Minutes since sighting (computed)
   reported_age: number; // Minutes since report (computed)
+}
+```
+**Error Response (400):**
+```typescript
+{
+  error: string;  // e.g., "Location is outside the allowed geofence area"
 }
 ```
 
@@ -131,3 +184,140 @@ cd server
 npm rebuild better-sqlite3 --nodedir=$HOME/.nvm/versions/node/v22.21.0
 ```
 This rebuilds the native module against the correct Node version (Node 22).
+
+**Root Cause:** better-sqlite3 is a native module that must be compiled for the specific Node.js version. When switching between Node versions or if the system Node differs from the nvm Node, the module needs to be rebuilt.
+
+### Husky Pre-commit Hooks with nvm
+
+**Critical:** Pre-commit hooks must source nvm to ensure consistent Node version (v22.21.0) across all environments.
+
+In `.husky/pre-commit`:
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+npx lint-staged
+
+# Run tests
+cd client && npm test -- --run
+cd ../server && npm test
+
+# Run builds
+cd ../client && npm run build
+cd ../server && npm run build
+```
+
+Without sourcing nvm, the hooks will use the system Node version, which may cause better-sqlite3 compilation issues.
+
+### DST (Daylight Saving Time) Handling
+
+**Problem:** Hardcoded timezone offsets caused sightings to disappear after midnight during DST transitions.
+
+**Solution:** Dynamic offset calculation using JavaScript's `toLocaleString()`:
+
+```typescript
+getTimezoneOffsetMs(date: Date, timezone: string): number {
+  const tzDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+  const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+  return utcDate.getTime() - tzDate.getTime();
+}
+```
+
+This approach automatically handles DST transitions without manual offset adjustments.
+
+**Test Coverage:** DST tests verify correct behavior for dates before/after DST transitions (October dates in America/Chicago).
+
+### iOS Safari Layout Issues
+
+**Problem:** Header would intermittently appear under iOS Safari's dynamic address bar (50% failure rate on page refresh).
+
+**Root Cause:** iOS Safari changes viewport height dynamically as the address bar shows/hides, and `100vh` is unreliable.
+
+**Solution:**
+1. **HTML:** Added `viewport-fit=cover` to meta tag for safe area support
+2. **Body:** Changed to `position: fixed` with `overflow: hidden` to prevent viewport height changes
+3. **Root element:** Applied safe area insets for notch and home indicator
+4. **App container:** Changed from `h-screen` (100vh) to `fixed inset-0` for stable positioning
+
+```css
+body {
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+```
+
+### 24-Hour Rolling Window
+
+**Decision:** Changed from calendar-day filtering to 24-hour rolling window for default view.
+
+**Rationale:**
+- Simpler implementation (no timezone conversions needed)
+- More intuitive for users ("last 24 hours" vs "today in timezone X")
+- Avoids DST edge cases for default view
+- Calendar-day filtering still available via optional `date` parameter
+
+**Implementation:**
+```typescript
+if (date) {
+  // Use timezone-aware date filtering
+} else {
+  // Default: 24-hour rolling window
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  query += ' WHERE sighted_at >= ?';
+  params.push(twentyFourHoursAgo.toISOString());
+}
+```
+
+### Deployment to Fly.io
+
+**Backend Deployment:**
+- SQLite database stored in container (ephemeral by default)
+- Environment variables for geofence configuration
+- NODE_ENV=production for production builds
+- Consider using Fly volumes for database persistence
+
+**Frontend Deployment:**
+- Update API endpoint to point to deployed backend
+- Static files served from production build
+- SPA routing handled by serving index.html for all routes
+
+**Key Commands:**
+```bash
+# Deploy
+fly deploy
+
+# View logs
+fly logs
+
+# Set secrets
+fly secrets set KEY=value
+```
+
+### Node Version Management
+
+**Critical:** Project requires Node.js v22.21.0 (managed by nvm)
+
+**.nvmrc:** Specifies Node version for automatic switching
+```
+22.21.0
+```
+
+**Usage:**
+```bash
+nvm use  # Automatically uses version from .nvmrc
+```
+
+**Why Node 22:**
+- Modern TypeScript support
+- Better performance for native modules
+- Long-term support (LTS) version

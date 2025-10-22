@@ -14,6 +14,11 @@
 - [x] Write tests and implement API endpoints (10 tests passing)
 - [x] Configure Prettier + ESLint with build-time checks
 - [x] Fix default behavior: GET /api/sightings returns today's sightings only
+- [x] Implement 24-hour rolling window for default sighting retrieval
+- [x] Fix DST bug in date/time filtering (now uses dynamic offset calculation)
+- [x] Implement geofence validation (5-mile radius default, configurable via env vars)
+- [x] Add Husky pre-commit hooks with test and build validation
+- [x] Configure nvm in pre-commit hooks for Node version consistency
 
 ### Frontend (Client)
 
@@ -24,18 +29,41 @@
 - [x] Configure Prettier + ESLint with build-time checks
 - [x] Write tests and implement Map component (TDD)
 - [x] Upgrade Node.js to v22.21.0 via nvm
+- [x] Fix iOS Safari header positioning with dynamic address bar
+- [x] Add safe area inset support for iOS notch and home indicator
 
 ### Infrastructure
 
 - [x] Add .gitignore file
 - [x] Add .nvmrc for Node version management
 - [x] Fix TypeScript `import type` issue with verbatimModuleSyntax
+- [x] Deploy to Fly.io (backend and frontend)
+- [x] Add restart.sh script for dev server management
+- [x] Document error handling philosophy in CLAUDE.md
 
 ## In Progress 🚧
 
-- [ ] Fix Leaflet marker icons (broken in Vite)
+### Geofence UX Improvements (TDD) - ✅ COMPLETED
+- [x] Create client-side geofence utility library (client/src/lib/geofence.ts)
+- [x] Write tests for geofence utilities (9/9 passing)
+- [x] Write tests for geofence validation in SightingForm (9/9 passing)
+- [x] Implement real-time geofence validation in SightingForm
+  - Show warning message when location is outside geofence
+  - Disable submit button when outside geofence
+  - Display geofence boundary circle on map (semi-transparent red circle)
+- [x] Update API error messages to be user-friendly (includes geoname and radius)
+- [x] Add configurable geoname to build parameters (VITE_GEONAME / GEONAME)
+- [x] Test and verify all geofence UX improvements
+
+**Status:** All tests passing (32/32 frontend, 24/24 backend) ✅
+
+**Goal:** Prevent geofence errors up front instead of showing generic "failed to create sighting" errors ✅
 
 ## Pending 📋
+
+### Known Issues
+
+None at this time! 🎉
 
 ### Frontend Components
 
@@ -62,6 +90,10 @@
 
 ### UI/UX Enhancements
 
+- [ ] Add time-based filter controls (Last 1h, 4h, 12h, 24h default, All time)
+- [ ] Add "Near Me" filter (0.5 mile radius from user's current location)
+- [ ] Add current time display in legend (refresh with each data update)
+- [ ] Format popup times: show "1h", "2h", etc. for sightings older than 60 minutes
 - [ ] Add loading states for API calls
 - [ ] Add error handling and user feedback
 - [ ] Implement responsive mobile-first layout
@@ -93,11 +125,13 @@
 
 ### Current Status
 
-- **Backend Tests:** 21/21 passing ✅
-- **Frontend Tests:** 4/4 passing ✅
+- **Backend Tests:** 24/24 passing ✅
+- **Frontend Tests:** 32/32 passing ✅
 - **Format/Lint:** All checks passing ✅
-- **Dev Server:** Running at http://localhost:5173/
+- **Pre-commit Hooks:** Enabled (tests + builds)
+- **Deployment:** Live on Fly.io
 - **Node Version:** v22.21.0 (managed by nvm)
+- **Recently Completed:** Geofence UX improvements with configurable geoname + boundary circle visualization ✅
 
 ### Key Technical Decisions
 
@@ -105,7 +139,11 @@
 - Tailwind CSS v3 (not v4) for stability
 - shadcn/ui approach: copy components instead of package dependency
 - All dates/times stored and transmitted as GMT/UTC
-- Default filter: today's sightings in America/Chicago timezone
+- Default filter: 24-hour rolling window (not calendar day)
+- Geofence validation: 5-mile radius (configurable via GEOFENCE_* env vars)
+- Geoname: Display name for location (configurable via VITE_GEONAME/GEONAME, default: "Oak Park, IL")
+- iOS Safari: fixed positioning with safe area insets for notch support
+- DST handling: dynamic offset calculation using toLocaleString()
 
 ### Architecture
 

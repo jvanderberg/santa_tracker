@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
+import { isWithinGeofence, getGeofenceConfig } from '../lib/geofence';
 
 interface SightingFormData {
   latitude: number;
@@ -15,6 +16,7 @@ interface SightingFormProps {
 
 // Oak Park default
 const DEFAULT_CENTER: [number, number] = [41.8781, -87.7846];
+const METERS_PER_MILE = 1609.34;
 
 function LocationPicker({
   position,
@@ -32,6 +34,30 @@ function LocationPicker({
   return position ? <Marker position={position} /> : null;
 }
 
+function GeofenceCircle({
+  config,
+}: {
+  config: { centerLat: number; centerLon: number; radiusMiles: number };
+}) {
+  // Skip rendering Circle in test environment due to Leaflet renderer limitations in jsdom
+  if (import.meta.env.MODE === 'test') {
+    return null;
+  }
+
+  return (
+    <Circle
+      center={[config.centerLat, config.centerLon]}
+      radius={config.radiusMiles * METERS_PER_MILE}
+      pathOptions={{
+        color: '#ef4444',
+        fillColor: '#ef4444',
+        fillOpacity: 0.1,
+        weight: 2,
+      }}
+    />
+  );
+}
+
 export function SightingForm({ onClose, onSubmit, location }: SightingFormProps) {
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(
     location ? { lat: location.latitude, lng: location.longitude } : null
@@ -39,6 +65,12 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
   const [details, setDetails] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const geofenceConfig = getGeofenceConfig();
+
+  // Check if selected location is within geofence
+  const isLocationValid =
+    selectedLocation && isWithinGeofence(selectedLocation.lat, selectedLocation.lng);
 
   const handleLocationSelect = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
@@ -114,6 +146,7 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                <GeofenceCircle config={geofenceConfig} />
                 <LocationPicker
                   position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null}
                   onLocationSelect={handleLocationSelect}
@@ -123,6 +156,12 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
             {selectedLocation && (
               <p className="text-xs text-gray-500 mt-1">
                 {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
+              </p>
+            )}
+            {selectedLocation && !isLocationValid && (
+              <p className="text-sm text-red-600 mt-2">
+                Location is outside the {geofenceConfig.geoname} area. Please select a location
+                within {geofenceConfig.radiusMiles} miles.
               </p>
             )}
           </div>
@@ -154,7 +193,7 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
             </button>
             <button
               type="submit"
-              disabled={submitting || !selectedLocation}
+              disabled={submitting || !selectedLocation || !isLocationValid}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Submitting...' : 'Submit'}

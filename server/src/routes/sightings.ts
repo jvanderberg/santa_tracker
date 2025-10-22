@@ -1,9 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { Database } from '../database';
 import { SightingInput } from '../types';
+import { isWithinGeofence, getGeofenceConfig } from '../geofence';
 
 export function createSightingsRouter(db: Database): Router {
   const router = Router();
+  const geofenceConfig = getGeofenceConfig();
 
   // POST /api/sightings
   router.post('/', (req: Request, res: Response): void => {
@@ -30,6 +32,14 @@ export function createSightingsRouter(db: Database): Router {
 
       if (typeof sighted_at !== 'string' || typeof details !== 'string') {
         res.status(400).json({ error: 'Invalid sighted_at or details' });
+        return;
+      }
+
+      // Validate geofence
+      if (!isWithinGeofence(latitude, longitude)) {
+        res.status(400).json({
+          error: `Location is outside the ${geofenceConfig.geoname} area (${geofenceConfig.radiusMiles} mile radius)`,
+        });
         return;
       }
 
