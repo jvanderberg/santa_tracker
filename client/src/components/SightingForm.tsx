@@ -116,9 +116,7 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <LocationPicker
-                  position={
-                    selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null
-                  }
+                  position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null}
                   onLocationSelect={handleLocationSelect}
                 />
               </MapContainer>

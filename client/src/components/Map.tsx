@@ -134,7 +134,10 @@ export function Map({ sightings: propSightings }: MapProps) {
       </MapContainer>
 
       {/* Legend */}
-      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 text-xs" style={{ zIndex: 1000 }}>
+      <div
+        className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 text-xs"
+        style={{ zIndex: 1000 }}
+      >
         <div className="font-semibold mb-2">Sighting Age</div>
         <div className="space-y-1">
           <div className="flex items-center gap-2">

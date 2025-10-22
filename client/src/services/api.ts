@@ -1,8 +1,7 @@
 import type { Sighting } from '../types';
 
 // Use environment variable or fallback to window.location for network access
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000/api`;
+const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000/api`;
 
 export interface SightingInput {
   latitude: number;
