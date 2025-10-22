@@ -104,4 +104,18 @@ describe('Map Component', () => {
       expect(screen.getByText(/Failed to load sightings/i)).toBeInTheDocument();
     });
   });
+
+  it('displays current time in legend', async () => {
+    vi.mocked(api.getSightings).mockResolvedValue([]);
+
+    render(<Map />);
+
+    await waitFor(() => {
+      const mapContainer = screen.getByTestId('map-container');
+      expect(mapContainer).toBeInTheDocument();
+    });
+
+    // Should display "@ " followed by a time with AM/PM at the top
+    expect(screen.getByText(/@\s*\d{1,2}:\d{2}\s*(AM|PM)/i)).toBeInTheDocument();
+  });
 });

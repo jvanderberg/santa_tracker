@@ -41,24 +41,6 @@
 - [x] Add restart.sh script for dev server management
 - [x] Document error handling philosophy in CLAUDE.md
 
-## In Progress 🚧
-
-### Geofence UX Improvements (TDD) - ✅ COMPLETED
-- [x] Create client-side geofence utility library (client/src/lib/geofence.ts)
-- [x] Write tests for geofence utilities (9/9 passing)
-- [x] Write tests for geofence validation in SightingForm (9/9 passing)
-- [x] Implement real-time geofence validation in SightingForm
-  - Show warning message when location is outside geofence
-  - Disable submit button when outside geofence
-  - Display geofence boundary circle on map (semi-transparent red circle)
-- [x] Update API error messages to be user-friendly (includes geoname and radius)
-- [x] Add configurable geoname to build parameters (VITE_GEONAME / GEONAME)
-- [x] Test and verify all geofence UX improvements
-
-**Status:** All tests passing (32/32 frontend, 24/24 backend) ✅
-
-**Goal:** Prevent geofence errors up front instead of showing generic "failed to create sighting" errors ✅
-
 ## Pending 📋
 
 ### Known Issues
@@ -67,38 +49,40 @@ None at this time! 🎉
 
 ### Frontend Components
 
-- [ ] Create API client service with fetch wrapper
-- [ ] Write tests and implement Header component
-  - Time filter dropdown (Today, Yesterday, Date picker)
-  - "Add Sighting" button
-  - Title/logo
-- [ ] Write tests and implement SightingForm component
+- [x] Create API client service with fetch wrapper
+- [x] Write tests and implement Header component
+  - Filter button (sliders icon)
+  - "Add Sighting" button (plus icon)
+  - Title/logo with geoname display
+- [x] Write tests and implement SightingForm component
   - Map click to set location
-  - Datetime picker (defaults to now)
+  - Real-time geofence validation
   - Details textarea
   - Submit handler with API integration
-- [ ] Write tests and implement SightingMarker component
-  - Custom marker icons (Santa themed)
-  - Popup with sighting details
-- [ ] Implement API integration in Map component
-  - Fetch today's sightings on mount
-  - Refresh on date filter change
-- [ ] Write tests and implement date/time utilities
+- [x] Write tests and implement custom marker component
+  - Color-coded markers by age (red < 30min, orange < 1h, yellow 1-2h, blue > 2h)
+  - Popup with sighting details and formatted time
+- [x] Implement API integration in Map component
+  - Fetch sightings on mount
+  - Auto-refresh every 60 seconds
+  - Apply client-side filters
+- [x] Write tests and implement date/time utilities
   - GMT to local time conversion
-  - Local time to GMT conversion
-  - Format display dates
+  - Relative time formatting ("now", "5 min ago", "1h ago", "2d ago")
+  - Current time display with AM/PM
 
 ### UI/UX Enhancements
 
 - [x] Display geoname in app UI (Header showing configured location name under title)
-- [ ] Add time-based filter controls (Last 1h, 4h, 12h, 24h default, All time)
-- [ ] Add "Near Me" filter (0.5 mile radius from user's current location)
-- [ ] Add current time display in legend (refresh with each data update)
-- [ ] Format popup times: show "1h", "2h", etc. for sightings older than 60 minutes
+- [x] Add time-based filter controls (Last 1h, 4h, 12h, 24h default) via FilterPopup
+- [x] Add "Near Me" filter (0.25 mile radius from user's current location)
+- [x] Add current time display in legend (@ 9:35 AM format, refreshes with data)
+- [x] Format popup times: show "now", "5 min ago", "1h ago" instead of raw minutes
+- [x] Add "Use Current Location" button in form
+- [x] Implement responsive mobile-first layout with icon buttons
+- [x] Fix client-side geofence validation to use fetched config
 - [ ] Add loading states for API calls
 - [ ] Add error handling and user feedback
-- [ ] Implement responsive mobile-first layout
-- [ ] Add "Use Current Location" button in form
 - [ ] Implement heat map visualization for sighting density
 
 ### Backend Enhancements
@@ -126,15 +110,18 @@ None at this time! 🎉
 
 ### Current Status
 
-- **Backend Tests:** 24/24 passing ✅
-- **Frontend Tests:** 33/33 passing ✅
+- **Backend Tests:** 25/25 passing ✅
+- **Frontend Tests:** 54/54 passing ✅
 - **Format/Lint:** All checks passing ✅
 - **Pre-commit Hooks:** Enabled (tests + builds)
 - **Deployment:** Live on Fly.io (configured for Oak Park, IL)
 - **Node Version:** v22.21.0 (managed by nvm)
 - **Recently Completed:**
-  - Geoname display in Header component ✅
-  - Monorepo Fly.io deployment with Docker build arguments for frontend env vars ✅
+  - Mobile-friendly filter popup with time and location filters ✅
+  - Time formatting in map popups ("now", "5 min ago", "1h ago", etc.) ✅
+  - Current time display in legend (updates with each refresh) ✅
+  - Fixed geofence validation to use fetched config instead of defaults ✅
+  - Added test to catch geofence config usage (TDD lesson learned) ✅
 
 ### Key Technical Decisions
 

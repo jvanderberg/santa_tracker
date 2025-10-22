@@ -5,6 +5,7 @@ import type { Sighting } from '../types';
 import { getSightings, getConfig } from '../services/api';
 import { getGeofenceConfig, calculateDistance } from '../lib/geofence';
 import { formatTimeAgo } from '../lib/timeFormat';
+import { formatCurrentTime } from '../lib/formatCurrentTime';
 import type { FilterOptions } from './FilterPopup';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
@@ -53,6 +54,7 @@ export function Map({ sightings: propSightings, filters }: MapProps) {
     getGeofenceConfig().centerLon,
   ]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentTime, setCurrentTime] = useState<string>(formatCurrentTime(new Date()));
 
   // Fetch config to set map center
   useEffect(() => {
@@ -77,6 +79,8 @@ export function Map({ sightings: propSightings, filters }: MapProps) {
       try {
         const data = await getSightings();
         setFetchedSightings(data);
+        // Update current time when data is refreshed
+        setCurrentTime(formatCurrentTime(new Date()));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load sightings');
       } finally {
@@ -213,7 +217,10 @@ export function Map({ sightings: propSightings, filters }: MapProps) {
         className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 text-xs"
         style={{ zIndex: 1000 }}
       >
-        <div className="font-semibold mb-2">Sighting Age</div>
+        <div className="font-semibold mb-2">@ {currentTime}</div>
+        <div className="pb-2 mb-2 border-b border-gray-200">
+          <div className="font-semibold mb-1">Sighting Age</div>
+        </div>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }} />
