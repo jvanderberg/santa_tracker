@@ -114,6 +114,7 @@ export function Map({ sightings: propSightings }: MapProps) {
   return (
     <div data-testid="map-container" className="h-full w-full relative">
       <MapContainer
+        key={`${mapCenter[0]}-${mapCenter[1]}`}
         center={mapCenter}
         zoom={DEFAULT_ZOOM}
         className="h-full w-full"

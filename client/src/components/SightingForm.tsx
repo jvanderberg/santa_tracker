@@ -15,8 +15,6 @@ interface SightingFormProps {
   location?: { latitude: number; longitude: number };
 }
 
-// Default center from config or fallback to Springfield
-const DEFAULT_CENTER: [number, number] = [38.5, -117.0];
 const METERS_PER_MILE = 1609.34;
 
 function LocationPicker({
@@ -144,8 +142,11 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
             <p className="text-sm text-gray-600 mb-2">Click on map to select location</p>
             <div className="h-64 border border-gray-300 rounded-md overflow-hidden">
               <MapContainer
+                key={`${geofenceConfig.centerLat}-${geofenceConfig.centerLon}`}
                 center={
-                  selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : DEFAULT_CENTER
+                  selectedLocation
+                    ? [selectedLocation.lat, selectedLocation.lng]
+                    : [geofenceConfig.centerLat, geofenceConfig.centerLon]
                 }
                 zoom={13}
                 className="h-full w-full"
