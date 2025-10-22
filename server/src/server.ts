@@ -4,6 +4,8 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import { Database } from './database';
 import { createSightingsRouter } from './routes/sightings';
+import { createAuthRouter } from './routes/auth';
+import { createAdminRouter } from './routes/admin';
 import { getGeofenceConfig } from './geofence';
 
 // Load environment variables from .env file in development
@@ -27,6 +29,8 @@ export function initializeApp(dbPath: string = 'sightings.db'): Express {
 
   // API Routes
   app.use('/api/sightings', createSightingsRouter(db));
+  app.use('/api/auth', createAuthRouter());
+  app.use('/api/admin', createAdminRouter());
 
   // Config endpoint - returns geofence configuration
   app.get('/api/config', (_req: Request, res: Response): void => {
