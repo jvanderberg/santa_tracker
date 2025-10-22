@@ -1,3 +1,5 @@
+import { VERSION } from '../version';
+
 interface HelpPopupProps {
   onClose: () => void;
   geoname: string;
@@ -71,9 +73,13 @@ export function HelpPopup({ onClose, geoname }: HelpPopupProps) {
             </section>
           </div>
 
+          <div className="mt-6 text-center">
+            <p className="text-xs italic text-gray-400">{VERSION}</p>
+          </div>
+
           <button
             onClick={onClose}
-            className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+            className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
           >
             Close
           </button>
