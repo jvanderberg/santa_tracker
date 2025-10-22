@@ -77,7 +77,8 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
 
   // Check if selected location is within geofence
   const isLocationValid =
-    selectedLocation && isWithinGeofence(selectedLocation.lat, selectedLocation.lng);
+    selectedLocation &&
+    isWithinGeofence(selectedLocation.lat, selectedLocation.lng, geofenceConfig);
 
   const handleLocationSelect = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
