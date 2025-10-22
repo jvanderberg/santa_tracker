@@ -120,3 +120,4 @@ Get single sighting by id
   reported_age: number; // Minutes since report (computed)
 }
 ```
+- can we make sure that we do a full build and run all tests before committing?
