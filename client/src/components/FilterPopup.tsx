@@ -41,7 +41,7 @@ export function FilterPopup({ onApply, onClose, initialFilters, geoname }: Filte
           <h3 className="text-lg font-semibold mb-3">Time</h3>
           <div className="space-y-3">
             {[
-              { value: 1, label: 'Last 1 hour' },
+              { value: 1, label: 'Last hour' },
               { value: 4, label: 'Last 4 hours' },
               { value: 12, label: 'Last 12 hours' },
               { value: 24, label: 'Last 24 hours' },

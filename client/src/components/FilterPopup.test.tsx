@@ -33,7 +33,7 @@ describe('FilterPopup Component', () => {
       />
     );
 
-    expect(screen.getByLabelText('Last 1 hour')).toBeInTheDocument();
+    expect(screen.getByLabelText('Last hour')).toBeInTheDocument();
     expect(screen.getByLabelText('Last 4 hours')).toBeInTheDocument();
     expect(screen.getByLabelText('Last 12 hours')).toBeInTheDocument();
     expect(screen.getByLabelText('Last 24 hours')).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('FilterPopup Component', () => {
       />
     );
 
-    const radio1h = screen.getByLabelText('Last 1 hour') as HTMLInputElement;
+    const radio1h = screen.getByLabelText('Last hour') as HTMLInputElement;
     fireEvent.click(radio1h);
 
     expect(radio1h.checked).toBe(true);
