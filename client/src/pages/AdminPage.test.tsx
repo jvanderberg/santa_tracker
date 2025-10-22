@@ -20,9 +20,10 @@ describe('AdminPage Component', () => {
     expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
   });
 
-  it('shows "Authenticated" when admin test succeeds', async () => {
+  it('shows "Admin Panel" when admin test succeeds', async () => {
     vi.mocked(api.adminLogin).mockResolvedValue('mock-jwt-token');
     vi.mocked(api.testAdminAuth).mockResolvedValue(true);
+    vi.mocked(api.getSightings).mockResolvedValue([]);
 
     render(<AdminPage />);
 
@@ -33,7 +34,7 @@ describe('AdminPage Component', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Authenticated')).toBeInTheDocument();
+      expect(screen.getByText('Admin Panel')).toBeInTheDocument();
     });
 
     expect(api.adminLogin).toHaveBeenCalledWith('test-passphrase');
@@ -76,6 +77,7 @@ describe('AdminPage Component', () => {
   it('stores token in sessionStorage on successful authentication', async () => {
     vi.mocked(api.adminLogin).mockResolvedValue('mock-jwt-token');
     vi.mocked(api.testAdminAuth).mockResolvedValue(true);
+    vi.mocked(api.getSightings).mockResolvedValue([]);
 
     render(<AdminPage />);
 
@@ -86,7 +88,7 @@ describe('AdminPage Component', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Authenticated')).toBeInTheDocument();
+      expect(screen.getByText('Admin Panel')).toBeInTheDocument();
     });
 
     expect(sessionStorage.getItem('adminToken')).toBe('mock-jwt-token');
@@ -96,11 +98,12 @@ describe('AdminPage Component', () => {
     // Set a token in sessionStorage
     sessionStorage.setItem('adminToken', 'existing-token');
     vi.mocked(api.testAdminAuth).mockResolvedValue(true);
+    vi.mocked(api.getSightings).mockResolvedValue([]);
 
     render(<AdminPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Authenticated')).toBeInTheDocument();
+      expect(screen.getByText('Admin Panel')).toBeInTheDocument();
     });
 
     expect(api.testAdminAuth).toHaveBeenCalledWith('existing-token');

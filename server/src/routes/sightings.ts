@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { Database } from '../database';
 import { SightingInput } from '../types';
 import { isWithinGeofence, getGeofenceConfig } from '../geofence';
+import { verifyAdminToken } from '../middleware/auth';
 
 export function createSightingsRouter(db: Database): Router {
   const router = Router();
@@ -89,6 +90,29 @@ export function createSightingsRouter(db: Database): Router {
       }
 
       res.status(200).json(sighting);
+    } catch (_error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // DELETE /api/sightings/:id (admin only)
+  router.delete('/:id', verifyAdminToken, (req: Request, res: Response): void => {
+    try {
+      const id = parseInt(req.params.id, 10);
+
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'Invalid id' });
+        return;
+      }
+
+      const deleted = db.deleteSighting(id);
+
+      if (!deleted) {
+        res.status(404).json({ error: 'Sighting not found' });
+        return;
+      }
+
+      res.status(204).send();
     } catch (_error) {
       res.status(500).json({ error: 'Internal server error' });
     }

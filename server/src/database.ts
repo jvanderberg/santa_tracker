@@ -73,6 +73,12 @@ export class Database {
     return row ? this.addAgeFields(row) : undefined;
   }
 
+  public deleteSighting(id: number): boolean {
+    const stmt = this.db.prepare('DELETE FROM sightings WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  }
+
   private addAgeFields(row: SightingRow): Sighting {
     const now = new Date();
     const sightedAt = new Date(row.sighted_at);

@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getSightings, createSighting, getConfig, adminLogin, testAdminAuth } from './api';
+import {
+  getSightings,
+  createSighting,
+  getConfig,
+  adminLogin,
+  testAdminAuth,
+  deleteSighting,
+} from './api';
 import type { Sighting } from '../types';
 import type { GeofenceConfig } from '../lib/geofence';
 
@@ -213,6 +220,38 @@ describe('API Service', () => {
       const result = await testAdminAuth('invalid-token');
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('deleteSighting', () => {
+    it('deletes sighting with valid token', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 204,
+      });
+
+      await deleteSighting(123, 'mock-jwt-token');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/sightings/123'),
+        expect.objectContaining({
+          method: 'DELETE',
+          headers: {
+            Authorization: 'Bearer mock-jwt-token',
+          },
+        })
+      );
+    });
+
+    it('throws error when delete fails', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+      });
+
+      await expect(deleteSighting(123, 'mock-jwt-token')).rejects.toThrow(
+        'Failed to delete sighting'
+      );
     });
   });
 });

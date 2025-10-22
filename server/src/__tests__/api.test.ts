@@ -1,11 +1,25 @@
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
+import bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
 import { app, initializeApp } from '../server';
 
 describe('API Endpoints', () => {
   const testDbPath = path.join(__dirname, 'test-api.db');
+  let testPasswordHash: string;
+
+  beforeAll(async () => {
+    // Create a test password hash for admin authentication
+    testPasswordHash = await bcrypt.hash('test-passphrase', 10);
+    process.env.ADMIN_SECRET_HASH = testPasswordHash;
+    process.env.JWT_SECRET = 'test-jwt-secret';
+  });
+
+  afterAll(() => {
+    delete process.env.ADMIN_SECRET_HASH;
+    delete process.env.JWT_SECRET;
+  });
 
   beforeEach(() => {
     if (fs.existsSync(testDbPath)) {
@@ -217,6 +231,81 @@ describe('API Endpoints', () => {
 
     it('should return 400 for invalid id', async () => {
       await request(app).get('/api/sightings/invalid').expect(400);
+    });
+  });
+
+  describe('DELETE /api/sightings/:id', () => {
+    let validToken: string;
+    let createdId: number;
+
+    beforeEach(async () => {
+      // Get a valid admin token
+      const authResponse = await request(app)
+        .post('/api/auth/admin')
+        .send({ secret: 'test-passphrase' });
+      validToken = authResponse.body.token;
+
+      // Create a sighting to delete
+      const sightingData = {
+        latitude: 38.5,
+        longitude: -117.0,
+        sighted_at: new Date().toISOString(),
+        details: 'Test sighting for deletion',
+        timezone: 'America/Chicago',
+      };
+      const createResponse = await request(app).post('/api/sightings').send(sightingData);
+      createdId = createResponse.body.id;
+    });
+
+    it('should delete a sighting with valid admin token', async () => {
+      const response = await request(app)
+        .delete(`/api/sightings/${createdId}`)
+        .set('Authorization', `Bearer ${validToken}`)
+        .expect(204);
+
+      expect(response.body).toEqual({});
+
+      // Verify sighting was deleted
+      await request(app).get(`/api/sightings/${createdId}`).expect(404);
+    });
+
+    it('should return 401 when no token is provided', async () => {
+      const response = await request(app)
+        .delete(`/api/sightings/${createdId}`)
+        .expect('Content-Type', /json/)
+        .expect(401);
+
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should return 401 with invalid token', async () => {
+      const response = await request(app)
+        .delete(`/api/sightings/${createdId}`)
+        .set('Authorization', 'Bearer invalid-token')
+        .expect('Content-Type', /json/)
+        .expect(401);
+
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should return 404 for non-existent id', async () => {
+      const response = await request(app)
+        .delete('/api/sightings/99999')
+        .set('Authorization', `Bearer ${validToken}`)
+        .expect('Content-Type', /json/)
+        .expect(404);
+
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should return 400 for invalid id', async () => {
+      const response = await request(app)
+        .delete('/api/sightings/invalid')
+        .set('Authorization', `Bearer ${validToken}`)
+        .expect('Content-Type', /json/)
+        .expect(400);
+
+      expect(response.body.error).toBeDefined();
     });
   });
 
