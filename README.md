@@ -62,7 +62,41 @@ cd ../client
 npm install
 ```
 
-4. Start the development servers
+4. Configure local environment variables
+
+Create `server/.env`:
+```bash
+# Geofence Configuration - customize for your location
+GEOFENCE_CENTER_LAT=38.5
+GEOFENCE_CENTER_LON=-117.0
+GEOFENCE_RADIUS_MILES=5
+GEONAME=Springfield
+```
+
+Create `client/.env`:
+```bash
+# Geofence Configuration - customize for your location
+VITE_GEOFENCE_CENTER_LAT=38.5
+VITE_GEOFENCE_CENTER_LON=-117.0
+VITE_GEOFENCE_RADIUS_MILES=5
+VITE_GEONAME=Springfield
+```
+
+5. Start the development servers
+
+**Quick start** (recommended):
+```bash
+./restart.sh
+```
+
+This script will:
+- Stop any existing servers on ports 3000 and 5173
+- Clean build artifacts
+- Install/update dependencies
+- Start both backend and frontend servers
+- Display process IDs for monitoring
+
+**Manual start** (alternative):
 
 In one terminal (server):
 ```bash
@@ -117,18 +151,31 @@ npm run build
 
 ### Geofence Settings
 
-The application restricts sightings to a configurable geographic area. Configure via environment variables:
+The application restricts sightings to a configurable geographic area. All configuration is environment-based with no hardcoded locations.
 
+**Local Development**: Create `.env` files in `server/` and `client/` directories (these files are gitignored).
+
+**Server** (`server/.env`):
 ```bash
-# Server environment variables
-GEOFENCE_CENTER_LAT=41.8781    # Center point latitude
-GEOFENCE_CENTER_LON=-87.7846   # Center point longitude
+GEOFENCE_CENTER_LAT=38.5       # Center point latitude
+GEOFENCE_CENTER_LON=-117.0     # Center point longitude
 GEOFENCE_RADIUS_MILES=5        # Radius in miles
+GEONAME=Springfield            # Display name for location
 ```
 
-Default: Oak Park, IL (41.8781°N, 87.7846°W) with a 5-mile radius.
+**Client** (`client/.env`):
+```bash
+VITE_GEOFENCE_CENTER_LAT=38.5
+VITE_GEOFENCE_CENTER_LON=-117.0
+VITE_GEOFENCE_RADIUS_MILES=5
+VITE_GEONAME=Springfield
+```
+
+**Production**: Use Fly.io secrets (see Deployment section below).
 
 ## Deployment to Fly.io
+
+This is a **monorepo deployment** - both frontend and backend deploy together in a single Docker container.
 
 ### Prerequisites
 
@@ -136,55 +183,50 @@ Default: Oak Park, IL (41.8781°N, 87.7846°W) with a 5-mile radius.
 2. Sign up for a Fly.io account: https://fly.io/app/sign-up
 3. Authenticate: `fly auth login`
 
-### Deploy Backend
+### Initial Setup (First Time Only)
 
-1. Navigate to the server directory:
-```bash
-cd server
-```
-
-2. Initialize Fly.io app (first time only):
+1. Initialize Fly.io app from project root:
 ```bash
 fly launch
 ```
 Follow the prompts:
-- Choose app name (e.g., `santa-tracker-api`)
-- Select region closest to your users
+- Choose app name (e.g., `santa-tracker`)
+- Select region closest to your users (default: `ord` for Chicago)
 - Don't deploy yet - we need to configure first
 
-3. Set environment variables:
+2. Create a volume for database persistence:
 ```bash
-fly secrets set GEOFENCE_CENTER_LAT=41.8781
-fly secrets set GEOFENCE_CENTER_LON=-87.7846
-fly secrets set GEOFENCE_RADIUS_MILES=5
-fly secrets set NODE_ENV=production
+fly volumes create santa_data --size 1
 ```
 
-4. Deploy:
+### Configure for Your Location
+
+**Step 1: Set backend secrets (runtime configuration):**
 ```bash
-fly deploy
+fly secrets set GEOFENCE_CENTER_LAT=41.8781 \
+  GEOFENCE_CENTER_LON=-87.7846 \
+  GEOFENCE_RADIUS_MILES=5 \
+  GEONAME="Oak Park, IL" \
+  NODE_ENV=production
 ```
 
-5. Note your API URL (e.g., `https://santa-tracker-api.fly.dev`)
+Replace coordinates with your location:
+- Oak Park, IL: `41.8781, -87.7846`
+- Springfield, NV: `38.5, -117.0`
 
-### Deploy Frontend
+**Step 2: Deploy with frontend build arguments:**
 
-1. Navigate to the client directory:
+The frontend requires environment variables at **build time** (baked into the JavaScript bundle):
+
 ```bash
-cd client
+fly deploy \
+  --build-arg VITE_GEOFENCE_CENTER_LAT=41.8781 \
+  --build-arg VITE_GEOFENCE_CENTER_LON=-87.7846 \
+  --build-arg VITE_GEOFENCE_RADIUS_MILES=5 \
+  --build-arg VITE_GEONAME="Oak Park, IL"
 ```
 
-2. Update the API endpoint in your client code to point to your deployed backend URL
-
-3. Initialize Fly.io app:
-```bash
-fly launch
-```
-
-4. Deploy:
-```bash
-fly deploy
-```
+**Important:** Frontend and backend coordinates must match!
 
 ### Managing Deployments
 
@@ -207,21 +249,11 @@ fly info
 
 ### Database Persistence
 
-The SQLite database is stored in the container and will persist across restarts but may be lost on redeployments. For production use, consider:
-
-1. Using Fly.io volumes for persistence:
-```bash
-fly volumes create santa_data --size 1
-```
-
-2. Update `fly.toml` to mount the volume:
-```toml
-[mounts]
-  source = "santa_data"
-  destination = "/data"
-```
-
-3. Update server to use `/data/sightings.db` as the database path
+The SQLite database is stored in a Fly.io volume at `/data/sightings.db`:
+- Volume `santa_data` is already configured in `fly.toml`
+- Data persists across deployments and restarts
+- Volume is mounted at `/data` in the container
+- The server is configured to use `/data/sightings.db` via the `DB_PATH` environment variable
 
 ## Troubleshooting
 

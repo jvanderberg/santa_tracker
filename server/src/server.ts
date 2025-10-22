@@ -5,6 +5,12 @@ import path from 'path';
 import { Database } from './database';
 import { createSightingsRouter } from './routes/sightings';
 
+// Load environment variables from .env file in development
+if (process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('dotenv').config();
+}
+
 export let app: Express = express();
 let db: Database;
 

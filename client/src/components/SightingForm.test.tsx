@@ -33,7 +33,7 @@ describe('SightingForm Component', () => {
       <SightingForm
         onClose={() => {}}
         onSubmit={handleSubmit}
-        location={{ latitude: 41.8781, longitude: -87.7846 }}
+        location={{ latitude: 38.5, longitude: -117.0 }}
       />
     );
 
@@ -60,7 +60,7 @@ describe('SightingForm Component', () => {
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}
-        location={{ latitude: 41.8781, longitude: -87.7846 }}
+        location={{ latitude: 38.5, longitude: -117.0 }}
       />
     );
 
@@ -69,26 +69,26 @@ describe('SightingForm Component', () => {
   });
 
   it('shows warning when location is outside geofence', () => {
-    // 10 miles north of Oak Park - outside 5 mile radius
+    // 10 miles north of Springfield - outside 5 mile radius
     render(
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}
-        location={{ latitude: 42.0231, longitude: -87.7846 }}
+        location={{ latitude: 38.645, longitude: -117.0 }}
       />
     );
 
-    expect(screen.getByText(/outside the oak park, il area/i)).toBeInTheDocument();
+    expect(screen.getByText(/outside the springfield area/i)).toBeInTheDocument();
     expect(screen.getByText(/within 5 miles/i)).toBeInTheDocument();
   });
 
   it('disables submit button when location is outside geofence', () => {
-    // 10 miles north of Oak Park - outside 5 mile radius
+    // 10 miles north of Springfield - outside 5 mile radius
     render(
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}
-        location={{ latitude: 42.0231, longitude: -87.7846 }}
+        location={{ latitude: 38.645, longitude: -117.0 }}
       />
     );
 
@@ -97,16 +97,16 @@ describe('SightingForm Component', () => {
   });
 
   it('shows no warning when location is inside geofence', () => {
-    // 1 mile north of Oak Park - inside 5 mile radius
+    // 1 mile north of Springfield - inside 5 mile radius
     render(
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}
-        location={{ latitude: 41.8926, longitude: -87.7846 }}
+        location={{ latitude: 38.5145, longitude: -117.0 }}
       />
     );
 
-    expect(screen.queryByText(/outside the oak park, il area/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/outside the springfield area/i)).not.toBeInTheDocument();
   });
 
   it('displays geofence boundary circle on map', () => {

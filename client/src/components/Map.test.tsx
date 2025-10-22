@@ -21,7 +21,7 @@ describe('Map Component', () => {
     });
   });
 
-  it('centers on Oak Park, IL by default', async () => {
+  it('centers on Springfield by default', async () => {
     vi.mocked(api.getSightings).mockResolvedValue([]);
     render(<Map />);
     await waitFor(() => {

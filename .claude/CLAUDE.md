@@ -37,19 +37,20 @@ When errors cannot be prevented, communicate them clearly to users:
 ## Requirements
 
 ### Map Configuration
-- Default center: Oak Park, IL (41.8781° N, 87.7846° W)
+- Default center: Configurable via environment variables
 - Default zoom level: 13
 - Map library: Leaflet via react-leaflet
 
 ### Geofence
 - Restricts sighting submissions to a configurable radius around a center point
-- Default center: Oak Park, IL (41.8781° N, 87.7846° W)
-- Default radius: 5 miles
-- Configurable via environment variables at build time:
-  - `GEOFENCE_CENTER_LAT`: Center latitude (default: 41.8781)
-  - `GEOFENCE_CENTER_LON`: Center longitude (default: -87.7846)
+- **All configuration is environment-based - no hardcoded locations**
+- Configurable via environment variables:
+  - `GEOFENCE_CENTER_LAT`: Center latitude (default: 38.5)
+  - `GEOFENCE_CENTER_LON`: Center longitude (default: -117.0)
   - `GEOFENCE_RADIUS_MILES`: Radius in miles (default: 5)
-  - `GEONAME` (server) / `VITE_GEONAME` (client): Display name for location (default: "Oak Park, IL")
+  - `GEONAME` (server) / `VITE_GEONAME` (client): Display name for location (default: "Springfield")
+- **Local Development**: Configure in `.env` files (gitignored)
+- **Production**: Configure using Fly.io secrets (see Deployment section)
 - Client-side validation: Shows warning and disables submit button when location is outside geofence
 - Visual indicator: Displays semi-transparent red circle on location picker map showing geofence boundary
 - Server-side validation: Returns 400 error with user-friendly message if location is outside geofence
@@ -278,29 +279,110 @@ if (date) {
 }
 ```
 
+### Local Development Environment
+
+**Setting up `.env` files (gitignored):**
+
+Create `server/.env`:
+```bash
+# Geofence Configuration
+GEOFENCE_CENTER_LAT=38.5
+GEOFENCE_CENTER_LON=-117.0
+GEOFENCE_RADIUS_MILES=5
+GEONAME=Springfield
+```
+
+Create `client/.env`:
+```bash
+# Geofence Configuration
+VITE_GEOFENCE_CENTER_LAT=38.5
+VITE_GEOFENCE_CENTER_LON=-117.0
+VITE_GEOFENCE_RADIUS_MILES=5
+VITE_GEONAME=Springfield
+```
+
+**Note**: The server automatically loads `.env` in development mode via dotenv.
+
+**Quick Start with `restart.sh`:**
+
+The project includes a convenient restart script that handles the full development server lifecycle:
+
+```bash
+./restart.sh
+```
+
+What it does:
+1. Stops any existing servers running on ports 3000 and 5173
+2. Cleans build artifacts (`dist/` directories)
+3. Installs/updates npm dependencies for both server and client
+4. Starts the backend server (http://localhost:3000)
+5. Waits 3 seconds for backend to initialize
+6. Starts the frontend server (http://localhost:5173)
+7. Displays process IDs for both servers
+
+**To stop servers manually:**
+```bash
+lsof -ti :3000 :5173 | xargs kill -9
+```
+
+The script confirms environment variables are loaded with a dotenv message showing how many variables were injected.
+
 ### Deployment to Fly.io
 
-**Backend Deployment:**
-- SQLite database stored in container (ephemeral by default)
-- Environment variables for geofence configuration
-- NODE_ENV=production for production builds
-- Consider using Fly volumes for database persistence
+This is a **monorepo deployment** - both frontend and backend deploy together in a single Dockerfile.
 
-**Frontend Deployment:**
-- Update API endpoint to point to deployed backend
-- Static files served from production build
-- SPA routing handled by serving index.html for all routes
+**Step 1: Set Backend Secrets (Runtime Configuration):**
+```bash
+# Set geofence configuration as secrets for the server
+fly secrets set GEOFENCE_CENTER_LAT=41.8781 \
+  GEOFENCE_CENTER_LON=-87.7846 \
+  GEOFENCE_RADIUS_MILES=5 \
+  GEONAME="Oak Park, IL" \
+  NODE_ENV=production
+
+# View current secrets (values are hidden)
+fly secrets list
+```
+
+**Step 2: Deploy with Frontend Build Arguments:**
+
+The frontend requires environment variables at **build time** (Vite bakes them into the JavaScript bundle). Pass them as Docker build arguments:
+
+```bash
+fly deploy \
+  --build-arg VITE_GEOFENCE_CENTER_LAT=41.8781 \
+  --build-arg VITE_GEOFENCE_CENTER_LON=-87.7846 \
+  --build-arg VITE_GEOFENCE_RADIUS_MILES=5 \
+  --build-arg VITE_GEONAME="Oak Park, IL"
+```
+
+**Important Notes:**
+- Backend secrets (GEOFENCE_*) are runtime and can be changed without rebuilding
+- Frontend secrets (VITE_*) are baked into the build and require redeployment to change
+- Both must use the same coordinates for consistent behavior
+- The Dockerfile accepts build arguments and passes them to Vite during the frontend build stage
+
+**Database Persistence:**
+- SQLite database stored in Fly volume at `/data/sightings.db`
+- Volume `santa_data` is already configured in fly.toml
+- Data persists across deployments
 
 **Key Commands:**
 ```bash
-# Deploy
-fly deploy
-
-# View logs
+# Monitor deployment
+fly status
 fly logs
 
-# Set secrets
+# Manage secrets
 fly secrets set KEY=value
+fly secrets unset KEY
+fly secrets list
+
+# SSH into running app (for debugging)
+fly ssh console
+
+# Check database
+fly ssh console -C "ls -la /data"
 ```
 
 ### Node Version Management

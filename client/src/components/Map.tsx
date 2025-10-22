@@ -7,8 +7,8 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
 
-// Default coordinates for Oak Park, IL
-const OAK_PARK_CENTER: [number, number] = [41.8781, -87.7846];
+// Default coordinates for Springfield
+const DEFAULT_CENTER: [number, number] = [38.5, -117.0];
 const DEFAULT_ZOOM = 13;
 
 // Get marker color based on sighting age in minutes
@@ -102,7 +102,7 @@ export function Map({ sightings: propSightings }: MapProps) {
   return (
     <div data-testid="map-container" className="h-full w-full relative">
       <MapContainer
-        center={OAK_PARK_CENTER}
+        center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
         className="h-full w-full"
         scrollWheelZoom={false}

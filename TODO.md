@@ -90,6 +90,7 @@ None at this time! 🎉
 
 ### UI/UX Enhancements
 
+- [x] Display geoname in app UI (Header showing configured location name under title)
 - [ ] Add time-based filter controls (Last 1h, 4h, 12h, 24h default, All time)
 - [ ] Add "Near Me" filter (0.5 mile radius from user's current location)
 - [ ] Add current time display in legend (refresh with each data update)
@@ -126,12 +127,14 @@ None at this time! 🎉
 ### Current Status
 
 - **Backend Tests:** 24/24 passing ✅
-- **Frontend Tests:** 32/32 passing ✅
+- **Frontend Tests:** 33/33 passing ✅
 - **Format/Lint:** All checks passing ✅
 - **Pre-commit Hooks:** Enabled (tests + builds)
-- **Deployment:** Live on Fly.io
+- **Deployment:** Live on Fly.io (configured for Oak Park, IL)
 - **Node Version:** v22.21.0 (managed by nvm)
-- **Recently Completed:** Geofence UX improvements with configurable geoname + boundary circle visualization ✅
+- **Recently Completed:**
+  - Geoname display in Header component ✅
+  - Monorepo Fly.io deployment with Docker build arguments for frontend env vars ✅
 
 ### Key Technical Decisions
 

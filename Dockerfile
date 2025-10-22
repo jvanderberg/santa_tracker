@@ -1,6 +1,19 @@
 # Build stage for frontend
 FROM node:20-alpine AS frontend-build
 WORKDIR /app/client
+
+# Accept build arguments for Vite environment variables
+ARG VITE_GEOFENCE_CENTER_LAT
+ARG VITE_GEOFENCE_CENTER_LON
+ARG VITE_GEOFENCE_RADIUS_MILES
+ARG VITE_GEONAME
+
+# Set as environment variables for the build
+ENV VITE_GEOFENCE_CENTER_LAT=$VITE_GEOFENCE_CENTER_LAT
+ENV VITE_GEOFENCE_CENTER_LON=$VITE_GEOFENCE_CENTER_LON
+ENV VITE_GEOFENCE_RADIUS_MILES=$VITE_GEOFENCE_RADIUS_MILES
+ENV VITE_GEONAME=$VITE_GEONAME
+
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./

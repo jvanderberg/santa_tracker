@@ -23,8 +23,8 @@ describe('API Endpoints', () => {
   describe('POST /api/sightings', () => {
     it('should create a new sighting', async () => {
       const sightingData = {
-        latitude: 41.8781,
-        longitude: -87.7846,
+        latitude: 38.5,
+        longitude: -117.0,
         sighted_at: new Date().toISOString(),
         details: 'Saw Santa on rooftop',
         timezone: 'America/Chicago',
@@ -68,10 +68,10 @@ describe('API Endpoints', () => {
     });
 
     it('should return 400 for sighting outside geofence', async () => {
-      // Point approximately 10 miles north of Oak Park (outside 5 mile default radius)
+      // Point approximately 10 miles north of Springfield (outside 5 mile default radius)
       const outsideGeofence = {
-        latitude: 42.0231,
-        longitude: -87.7846,
+        latitude: 38.645,
+        longitude: -117.0,
         sighted_at: new Date().toISOString(),
         details: 'Too far away',
         timezone: 'America/Chicago',
@@ -83,10 +83,10 @@ describe('API Endpoints', () => {
     });
 
     it('should accept sighting inside geofence', async () => {
-      // Point approximately 1 mile from Oak Park (inside 5 mile default radius)
+      // Point approximately 1 mile from Springfield (inside 5 mile default radius)
       const insideGeofence = {
-        latitude: 41.8926, // ~1 mile north
-        longitude: -87.7846,
+        latitude: 38.5145, // ~1 mile north
+        longitude: -117.0,
         sighted_at: new Date().toISOString(),
         details: 'Close enough',
         timezone: 'America/Chicago',
@@ -102,8 +102,8 @@ describe('API Endpoints', () => {
       await request(app)
         .post('/api/sightings')
         .send({
-          latitude: 41.8781,
-          longitude: -87.7846,
+          latitude: 38.5,
+          longitude: -117.0,
           sighted_at: new Date('2024-12-25T06:00:00Z').toISOString(),
           details: 'Morning sighting',
           timezone: 'America/Chicago',
@@ -112,8 +112,8 @@ describe('API Endpoints', () => {
       await request(app)
         .post('/api/sightings')
         .send({
-          latitude: 41.88,
-          longitude: -87.79,
+          latitude: 38.51,
+          longitude: -117.01,
           sighted_at: new Date('2024-12-25T12:00:00Z').toISOString(),
           details: 'Afternoon sighting',
           timezone: 'America/Chicago',
@@ -122,8 +122,8 @@ describe('API Endpoints', () => {
       await request(app)
         .post('/api/sightings')
         .send({
-          latitude: 41.875,
-          longitude: -87.78,
+          latitude: 38.505,
+          longitude: -117.005,
           sighted_at: new Date('2024-12-26T08:00:00Z').toISOString(),
           details: 'Next day sighting',
           timezone: 'America/Chicago',
@@ -133,8 +133,8 @@ describe('API Endpoints', () => {
     it("should return only today's sightings when no filter provided", async () => {
       // Add a sighting for today
       await request(app).post('/api/sightings').send({
-        latitude: 41.88,
-        longitude: -87.79,
+        latitude: 38.51,
+        longitude: -117.01,
         sighted_at: new Date().toISOString(),
         details: "Today's sighting",
         timezone: 'America/Chicago',
@@ -190,8 +190,8 @@ describe('API Endpoints', () => {
 
     beforeEach(async () => {
       const response = await request(app).post('/api/sightings').send({
-        latitude: 41.8781,
-        longitude: -87.7846,
+        latitude: 38.5,
+        longitude: -117.0,
         sighted_at: new Date().toISOString(),
         details: 'Test sighting',
         timezone: 'America/Chicago',

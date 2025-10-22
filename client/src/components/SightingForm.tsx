@@ -14,8 +14,8 @@ interface SightingFormProps {
   location?: { latitude: number; longitude: number };
 }
 
-// Oak Park default
-const DEFAULT_CENTER: [number, number] = [41.8781, -87.7846];
+// Default center from config or fallback to Springfield
+const DEFAULT_CENTER: [number, number] = [38.5, -117.0];
 const METERS_PER_MILE = 1609.34;
 
 function LocationPicker({

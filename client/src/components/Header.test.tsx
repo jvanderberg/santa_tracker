@@ -23,4 +23,9 @@ describe('Header Component', () => {
 
     expect(handleAddSighting).toHaveBeenCalledTimes(1);
   });
+
+  it('displays the geoname from geofence config', () => {
+    render(<Header onAddSighting={() => {}} />);
+    expect(screen.getByText('Springfield')).toBeInTheDocument();
+  });
 });

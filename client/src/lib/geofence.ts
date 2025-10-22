@@ -12,14 +12,14 @@ export interface GeofenceConfig {
 
 /**
  * Get geofence configuration
- * Defaults: Oak Park, IL (41.8781, -87.7846) with 5 mile radius
+ * Defaults: Springfield (38.5, -117.0) with 5 mile radius
  */
 export function getGeofenceConfig(): GeofenceConfig {
   return {
-    centerLat: Number(import.meta.env.VITE_GEOFENCE_CENTER_LAT) || 41.8781,
-    centerLon: Number(import.meta.env.VITE_GEOFENCE_CENTER_LON) || -87.7846,
+    centerLat: Number(import.meta.env.VITE_GEOFENCE_CENTER_LAT) || 38.5,
+    centerLon: Number(import.meta.env.VITE_GEOFENCE_CENTER_LON) || -117.0,
     radiusMiles: Number(import.meta.env.VITE_GEOFENCE_RADIUS_MILES) || 5,
-    geoname: import.meta.env.VITE_GEONAME || 'Oak Park, IL',
+    geoname: import.meta.env.VITE_GEONAME || 'Springfield',
   };
 }
 
