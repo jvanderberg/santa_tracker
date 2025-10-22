@@ -1,6 +1,5 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import type { LatLng } from 'leaflet';
 
 interface SightingFormData {
   latitude: number;
