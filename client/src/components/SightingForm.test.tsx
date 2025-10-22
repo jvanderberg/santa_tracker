@@ -1,10 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SightingForm } from './SightingForm';
+import * as api from '../services/api';
+
+// Mock the API module
+vi.mock('../services/api');
 
 describe('SightingForm Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default mock for getConfig
+    vi.mocked(api.getConfig).mockResolvedValue({
+      centerLat: 38.5,
+      centerLon: -117.0,
+      radiusMiles: 5,
+      geoname: 'Springfield',
+    });
   });
 
   it('renders form with map picker and use location button', () => {
@@ -121,5 +132,41 @@ describe('SightingForm Component', () => {
     // Verify the map container exists (which contains the GeofenceCircle)
     const mapContainer = container.querySelector('.leaflet-container');
     expect(mapContainer).toBeInTheDocument();
+  });
+
+  it('uses fetched geofence config for validation instead of defaults', async () => {
+    // Mock API to return Oak Park config (different from default Springfield)
+    vi.mocked(api.getConfig).mockResolvedValue({
+      centerLat: 41.8781,
+      centerLon: -87.7846,
+      radiusMiles: 5,
+      geoname: 'Oak Park, IL',
+    });
+
+    // This location is valid for Oak Park but NOT valid for Springfield
+    // Oak Park center: 41.8781, -87.7846
+    // This location: 41.88, -87.78 (< 5 miles from Oak Park)
+    // Springfield center: 38.5, -117.0 (hundreds of miles away)
+    render(
+      <SightingForm
+        onClose={() => {}}
+        onSubmit={() => Promise.resolve()}
+        location={{ latitude: 41.88, longitude: -87.78 }}
+      />
+    );
+
+    // Wait for config to be fetched
+    await waitFor(() => {
+      expect(api.getConfig).toHaveBeenCalled();
+    });
+
+    // Should show Oak Park geoname in error message (if it were outside)
+    // But this location IS valid for Oak Park, so no error should show
+    await waitFor(() => {
+      expect(screen.queryByText(/outside the springfield area/i)).not.toBeInTheDocument();
+      // Submit button should be enabled since location is valid for fetched config
+      const submitButton = screen.getByRole('button', { name: /submit/i });
+      expect(submitButton).not.toBeDisabled();
+    });
   });
 });
