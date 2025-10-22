@@ -56,3 +56,38 @@ export async function getConfig(): Promise<GeofenceConfig> {
 
   return response.json();
 }
+
+/**
+ * Admin authentication - login with passphrase
+ * Returns JWT token on success
+ */
+export async function adminLogin(passphrase: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/auth/admin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ secret: passphrase }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Invalid passphrase');
+  }
+
+  const data = await response.json();
+  return data.token;
+}
+
+/**
+ * Test admin authentication with token
+ * Returns true if token is valid, false otherwise
+ */
+export async function testAdminAuth(token: string): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}/admin/test`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.ok;
+}

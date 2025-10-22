@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getSightings, createSighting, getConfig } from './api';
+import { getSightings, createSighting, getConfig, adminLogin, testAdminAuth } from './api';
 import type { Sighting } from '../types';
 import type { GeofenceConfig } from '../lib/geofence';
 
@@ -147,6 +147,72 @@ describe('API Service', () => {
       });
 
       await expect(getConfig()).rejects.toThrow('Failed to fetch config');
+    });
+  });
+
+  describe('adminLogin', () => {
+    it('returns token with valid passphrase', async () => {
+      const mockResponse = {
+        token: 'mock-jwt-token',
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await adminLogin('test-passphrase');
+
+      expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/auth/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ secret: 'test-passphrase' }),
+      });
+      expect(result).toBe('mock-jwt-token');
+    });
+
+    it('throws an error with invalid passphrase', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+      });
+
+      await expect(adminLogin('wrong-passphrase')).rejects.toThrow('Invalid passphrase');
+    });
+  });
+
+  describe('testAdminAuth', () => {
+    it('returns true with valid token', async () => {
+      const mockResponse = {
+        message: 'Admin authentication successful',
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await testAdminAuth('mock-jwt-token');
+
+      expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/admin/test', {
+        headers: {
+          Authorization: 'Bearer mock-jwt-token',
+        },
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false with invalid token', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+      });
+
+      const result = await testAdminAuth('invalid-token');
+
+      expect(result).toBe(false);
     });
   });
 });
