@@ -14,7 +14,7 @@ export interface SightingInput {
 }
 
 export async function getSightings(date?: string): Promise<Sighting[]> {
-  const url = new URL(`${API_BASE_URL}/sightings`);
+  const url = new URL(`${API_BASE_URL}/sightings`, window.location.origin);
 
   if (date) {
     url.searchParams.append('date', date);
