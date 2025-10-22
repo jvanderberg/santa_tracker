@@ -3,6 +3,7 @@ import { Map } from './components/Map';
 import { Header } from './components/Header';
 import { SightingForm } from './components/SightingForm';
 import { FilterPopup, type FilterOptions } from './components/FilterPopup';
+import { HelpPopup } from './components/HelpPopup';
 import { createSighting, getConfig } from './services/api';
 import { getGeofenceConfig } from './lib/geofence';
 import './App.css';
@@ -10,6 +11,7 @@ import './App.css';
 function App() {
   const [showForm, setShowForm] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<FilterOptions>({ timeHours: 24, location: 'geofence' });
   const [geoname, setGeoname] = useState(getGeofenceConfig().geoname);
@@ -43,6 +45,14 @@ function App() {
     setShowFilter(false);
   };
 
+  const handleOpenHelp = () => {
+    setShowHelp(true);
+  };
+
+  const handleCloseHelp = () => {
+    setShowHelp(false);
+  };
+
   const handleSubmitSighting = async (data: {
     latitude: number;
     longitude: number;
@@ -59,7 +69,11 @@ function App() {
 
   return (
     <div className="fixed inset-0 flex flex-col">
-      <Header onAddSighting={handleAddSighting} onOpenFilter={handleOpenFilter} />
+      <Header
+        onAddSighting={handleAddSighting}
+        onOpenFilter={handleOpenFilter}
+        onOpenHelp={handleOpenHelp}
+      />
       <div className="flex-1">
         <Map key={refreshKey} filters={filters} />
       </div>
@@ -72,6 +86,7 @@ function App() {
           geoname={geoname}
         />
       )}
+      {showHelp && <HelpPopup onClose={handleCloseHelp} geoname={geoname} />}
     </div>
   );
 }
