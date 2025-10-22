@@ -14,6 +14,14 @@ ENV GEOFENCE_CENTER_LON=$GEOFENCE_CENTER_LON
 ENV GEOFENCE_RADIUS_MILES=$GEOFENCE_RADIUS_MILES
 ENV GEONAME=$GEONAME
 
+# Debug: Print build-time environment variables
+RUN echo "=== BUILD-TIME ENV VARS ===" && \
+    echo "GEOFENCE_CENTER_LAT: $GEOFENCE_CENTER_LAT" && \
+    echo "GEOFENCE_CENTER_LON: $GEOFENCE_CENTER_LON" && \
+    echo "GEOFENCE_RADIUS_MILES: $GEOFENCE_RADIUS_MILES" && \
+    echo "GEONAME: $GEONAME" && \
+    echo "=========================="
+
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./
