@@ -11,6 +11,13 @@ describe('AdminPage Component', () => {
     vi.clearAllMocks();
     // Clear sessionStorage before each test
     sessionStorage.clear();
+    // Mock getConfig to return default geofence config
+    vi.mocked(api.getConfig).mockResolvedValue({
+      centerLat: 41.8781,
+      centerLon: -87.7846,
+      radiusMiles: 5,
+      geoname: 'Oak Park, IL',
+    });
   });
 
   it('renders passphrase input form when not authenticated', () => {

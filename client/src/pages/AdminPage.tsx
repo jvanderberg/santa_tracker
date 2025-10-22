@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
-import { adminLogin, testAdminAuth, getSightings, deleteSighting } from '../services/api';
+import {
+  adminLogin,
+  testAdminAuth,
+  getSightings,
+  deleteSighting,
+  getConfig,
+} from '../services/api';
 import { SightingDetailPopup } from '../components/SightingDetailPopup';
 import type { Sighting } from '../types';
 import { getGeofenceConfig } from '../lib/geofence';
@@ -45,8 +51,12 @@ export function AdminPage() {
   const [sightings, setSightings] = useState<Sighting[]>([]);
   const [selectedSighting, setSelectedSighting] = useState<Sighting | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [geofenceConfig, setGeofenceConfig] = useState(getGeofenceConfig());
 
-  const geofenceConfig = getGeofenceConfig();
+  // Fetch geofence config on mount
+  useEffect(() => {
+    getConfig().then(setGeofenceConfig).catch(console.error);
+  }, []);
 
   // Check for existing token on mount
   useEffect(() => {
