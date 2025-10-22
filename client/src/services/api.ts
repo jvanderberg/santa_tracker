@@ -91,3 +91,20 @@ export async function testAdminAuth(token: string): Promise<boolean> {
 
   return response.ok;
 }
+
+/**
+ * Delete a sighting (admin only)
+ * Returns true on success, throws error on failure
+ */
+export async function deleteSighting(id: number, token: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/sightings/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete sighting');
+  }
+}
