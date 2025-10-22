@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import type { Sighting } from '../types';
-import { getSightings } from '../services/api';
+import { getSightings, getConfig } from '../services/api';
+import { getGeofenceConfig } from '../lib/geofence';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
 
-// Default coordinates for Springfield
-const DEFAULT_CENTER: [number, number] = [38.5, -117.0];
 const DEFAULT_ZOOM = 13;
 
 // Get marker color based on sighting age in minutes
@@ -45,6 +44,19 @@ export function Map({ sightings: propSightings }: MapProps) {
   const [fetchedSightings, setFetchedSightings] = useState<Sighting[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([
+    getGeofenceConfig().centerLat,
+    getGeofenceConfig().centerLon,
+  ]);
+
+  // Fetch config to set map center
+  useEffect(() => {
+    getConfig()
+      .then(config => setMapCenter([config.centerLat, config.centerLon]))
+      .catch(() => {
+        // Silently fall back to default if API fails
+      });
+  }, []);
 
   useEffect(() => {
     // Only fetch if no sightings were provided via props
@@ -102,7 +114,7 @@ export function Map({ sightings: propSightings }: MapProps) {
   return (
     <div data-testid="map-container" className="h-full w-full relative">
       <MapContainer
-        center={DEFAULT_CENTER}
+        center={mapCenter}
         zoom={DEFAULT_ZOOM}
         className="h-full w-full"
         scrollWheelZoom={false}

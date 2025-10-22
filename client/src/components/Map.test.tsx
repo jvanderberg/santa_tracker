@@ -10,6 +10,13 @@ vi.mock('../services/api');
 describe('Map Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock getConfig to return default Springfield config
+    vi.mocked(api.getConfig).mockResolvedValue({
+      centerLat: 38.5,
+      centerLon: -117.0,
+      radiusMiles: 5,
+      geoname: 'Springfield',
+    });
   });
 
   it('renders a map container', async () => {
