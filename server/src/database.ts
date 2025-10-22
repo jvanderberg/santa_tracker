@@ -49,13 +49,17 @@ export class Database {
     let query = 'SELECT * FROM sightings';
     const params: string[] = [];
 
-    // Default to today's date if no date provided
-    const dateToUse = date || this.getTodayInTimezone(timezone);
-
-    // Convert local date to GMT range
-    const { startGMT, endGMT } = this.dateToGMTRange(dateToUse, timezone);
-    query += ' WHERE sighted_at >= ? AND sighted_at < ?';
-    params.push(startGMT, endGMT);
+    if (date) {
+      // If a specific date is requested, use the old timezone-aware logic
+      const { startGMT, endGMT } = this.dateToGMTRange(date, timezone);
+      query += ' WHERE sighted_at >= ? AND sighted_at < ?';
+      params.push(startGMT, endGMT);
+    } else {
+      // Default: show sightings from the last 24 hours
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      query += ' WHERE sighted_at >= ?';
+      params.push(twentyFourHoursAgo.toISOString());
+    }
 
     const rows = this.db.prepare(query).all(...params) as SightingRow[];
     return rows.map(row => this.addAgeFields(row));

@@ -34,7 +34,8 @@
 - Timezone: America/Chicago (Oak Park, IL) compiled into app
 
 ### Time Filtering
-- Default: Show only today's sightings (in local timezone)
+- Default: Show sightings from last 24 hours (rolling window)
+- Optional: Filter by specific date in local timezone (uses DST-aware conversion)
 - Future: Historical day research capability
 
 ### Data Storage
@@ -86,7 +87,7 @@ Get sightings with optional filtering
 **Query Parameters:**
 - `date` (optional): YYYY-MM-DD in local timezone
 - `timezone` (optional): IANA timezone for date interpretation (defaults to "America/Chicago")
-- If no date provided, defaults to "today" in specified timezone
+- If no date provided, returns sightings from the last 24 hours (rolling window)
 
 **Response:**
 ```typescript
@@ -120,4 +121,13 @@ Get single sighting by id
   reported_age: number; // Minutes since report (computed)
 }
 ```
-- can we make sure that we do a full build and run all tests before committing?
+
+## Development Notes
+
+### better-sqlite3 Native Module
+If you encounter `NODE_MODULE_VERSION` mismatch errors with better-sqlite3:
+```bash
+cd server
+npm rebuild better-sqlite3 --nodedir=$HOME/.nvm/versions/node/v22.21.0
+```
+This rebuilds the native module against the correct Node version (Node 22).

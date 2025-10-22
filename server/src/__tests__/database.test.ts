@@ -105,20 +105,41 @@ describe('Database', () => {
       });
     });
 
-    it("should return only today's sightings when no date filter is provided", () => {
-      // Add a sighting for today
+    it('should return only sightings from the last 24 hours when no date filter is provided', () => {
+      const now = Date.now();
+
+      // Create sightings at different relative times
       db.createSighting({
         latitude: 41.88,
         longitude: -87.79,
-        sighted_at: new Date().toISOString(),
-        details: "Today's sighting",
+        sighted_at: new Date(now - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+        details: '1 hour ago',
+        timezone: 'America/Chicago',
+      });
+
+      db.createSighting({
+        latitude: 41.88,
+        longitude: -87.79,
+        sighted_at: new Date(now - 23 * 60 * 60 * 1000).toISOString(), // 23 hours ago
+        details: '23 hours ago',
+        timezone: 'America/Chicago',
+      });
+
+      db.createSighting({
+        latitude: 41.88,
+        longitude: -87.79,
+        sighted_at: new Date(now - 25 * 60 * 60 * 1000).toISOString(), // 25 hours ago (should be excluded)
+        details: '25 hours ago',
         timezone: 'America/Chicago',
       });
 
       const sightings = db.getSightings();
-      // Should only return today's sightings (1), not the 3 from beforeEach
-      expect(sightings.length).toBeGreaterThanOrEqual(1);
-      expect(sightings.every(s => s.details === "Today's sighting")).toBe(true);
+
+      // Should only return sightings from last 24 hours (2), not the 25-hour-old one or the 3 from beforeEach
+      expect(sightings).toHaveLength(2);
+      expect(sightings.find(s => s.details === '1 hour ago')).toBeDefined();
+      expect(sightings.find(s => s.details === '23 hours ago')).toBeDefined();
+      expect(sightings.find(s => s.details === '25 hours ago')).toBeUndefined();
     });
 
     it('should return sightings for a specific date in given timezone', () => {
