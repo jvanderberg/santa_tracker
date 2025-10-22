@@ -11,15 +11,16 @@ export interface GeofenceConfig {
 }
 
 /**
- * Get geofence configuration
+ * Get default geofence configuration
  * Defaults: Springfield (38.5, -117.0) with 5 mile radius
+ * Note: In production, fetch actual config from /api/config
  */
 export function getGeofenceConfig(): GeofenceConfig {
   return {
-    centerLat: Number(import.meta.env.GEOFENCE_CENTER_LAT) || 38.5,
-    centerLon: Number(import.meta.env.GEOFENCE_CENTER_LON) || -117.0,
-    radiusMiles: Number(import.meta.env.GEOFENCE_RADIUS_MILES) || 5,
-    geoname: import.meta.env.GEONAME || 'Springfield',
+    centerLat: 38.5,
+    centerLon: -117.0,
+    radiusMiles: 5,
+    geoname: 'Springfield',
   };
 }
 

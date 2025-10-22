@@ -2,26 +2,6 @@
 FROM node:20-alpine AS frontend-build
 WORKDIR /app/client
 
-# Accept build arguments - using same names as Fly secrets
-ARG GEOFENCE_CENTER_LAT
-ARG GEOFENCE_CENTER_LON
-ARG GEOFENCE_RADIUS_MILES
-ARG GEONAME
-
-# Set as environment variables for Vite build (same names as Fly secrets)
-ENV GEOFENCE_CENTER_LAT=$GEOFENCE_CENTER_LAT
-ENV GEOFENCE_CENTER_LON=$GEOFENCE_CENTER_LON
-ENV GEOFENCE_RADIUS_MILES=$GEOFENCE_RADIUS_MILES
-ENV GEONAME=$GEONAME
-
-# Debug: Print build-time environment variables
-RUN echo "=== BUILD-TIME ENV VARS ===" && \
-    echo "GEOFENCE_CENTER_LAT: $GEOFENCE_CENTER_LAT" && \
-    echo "GEOFENCE_CENTER_LON: $GEOFENCE_CENTER_LON" && \
-    echo "GEOFENCE_RADIUS_MILES: $GEOFENCE_RADIUS_MILES" && \
-    echo "GEONAME: $GEONAME" && \
-    echo "=========================="
-
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./

@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import { getConfig } from '../services/api';
 import { getGeofenceConfig } from '../lib/geofence';
 
 interface HeaderProps {
@@ -5,7 +7,15 @@ interface HeaderProps {
 }
 
 export function Header({ onAddSighting }: HeaderProps) {
-  const { geoname } = getGeofenceConfig();
+  const [geoname, setGeoname] = useState(getGeofenceConfig().geoname);
+
+  useEffect(() => {
+    getConfig()
+      .then(config => setGeoname(config.geoname))
+      .catch(() => {
+        // Silently fall back to default if API fails
+      });
+  }, []);
 
   return (
     <header className="bg-red-600 text-white p-4 shadow-md">

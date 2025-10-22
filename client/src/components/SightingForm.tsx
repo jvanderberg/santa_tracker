@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
-import { isWithinGeofence, getGeofenceConfig } from '../lib/geofence';
+import { isWithinGeofence, getGeofenceConfig, type GeofenceConfig } from '../lib/geofence';
+import { getConfig } from '../services/api';
 
 interface SightingFormData {
   latitude: number;
@@ -65,8 +66,16 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
   const [details, setDetails] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [geofenceConfig, setGeofenceConfig] = useState<GeofenceConfig>(getGeofenceConfig());
 
-  const geofenceConfig = getGeofenceConfig();
+  // Fetch config from API on mount
+  useEffect(() => {
+    getConfig()
+      .then(config => setGeofenceConfig(config))
+      .catch(() => {
+        // Silently fall back to default if API fails
+      });
+  }, []);
 
   // Check if selected location is within geofence
   const isLocationValid =

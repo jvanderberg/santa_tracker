@@ -13,6 +13,12 @@ describe('App', () => {
 
   it('renders the header and map container', async () => {
     vi.mocked(api.getSightings).mockResolvedValue([]);
+    vi.mocked(api.getConfig).mockResolvedValue({
+      centerLat: 38.5,
+      centerLon: -117.0,
+      radiusMiles: 5,
+      geoname: 'Springfield',
+    });
     render(<App />);
 
     expect(screen.getByText('Santa Tracker')).toBeInTheDocument();
