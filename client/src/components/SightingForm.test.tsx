@@ -29,7 +29,13 @@ describe('SightingForm Component', () => {
 
   it('displays error message when submission fails', async () => {
     const handleSubmit = vi.fn(() => Promise.reject(new Error('Network error')));
-    render(<SightingForm onClose={() => {}} onSubmit={handleSubmit} location={{ latitude: 41.8781, longitude: -87.7846 }} />);
+    render(
+      <SightingForm
+        onClose={() => {}}
+        onSubmit={handleSubmit}
+        location={{ latitude: 41.8781, longitude: -87.7846 }}
+      />
+    );
 
     const detailsInput = screen.getByLabelText(/details/i);
     const submitButton = screen.getByRole('button', { name: /submit/i });
@@ -50,7 +56,13 @@ describe('SightingForm Component', () => {
   });
 
   it('enables submit button when location is provided', () => {
-    render(<SightingForm onClose={() => {}} onSubmit={() => Promise.resolve()} location={{ latitude: 41.8781, longitude: -87.7846 }} />);
+    render(
+      <SightingForm
+        onClose={() => {}}
+        onSubmit={() => Promise.resolve()}
+        location={{ latitude: 41.8781, longitude: -87.7846 }}
+      />
+    );
 
     const submitButton = screen.getByRole('button', { name: /submit/i });
     expect(submitButton).not.toBeDisabled();

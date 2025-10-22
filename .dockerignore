@@ -20,6 +20,7 @@ client/dist
 # Git
 .git
 .gitignore
+.husky
 
 # IDE
 .vscode

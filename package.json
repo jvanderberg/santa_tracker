@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "client/**/*.{ts,tsx,js,jsx,json,css}": "cd client && npx prettier --write",
+    "server/**/*.{ts,js,json}": "cd server && npx prettier --write"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +19,9 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@vitest/ui": "^3.2.4",
+    "husky": "^9.1.7",
     "jsdom": "^27.0.1",
+    "lint-staged": "^16.2.5",
     "vitest": "^3.2.4"
   }
 }
