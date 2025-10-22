@@ -1,9 +1,10 @@
-import express, { Express } from 'express';
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { Database } from './database';
 import { createSightingsRouter } from './routes/sightings';
+import { getGeofenceConfig } from './geofence';
 
 // Load environment variables from .env file in development
 if (process.env.NODE_ENV !== 'production') {
@@ -26,6 +27,12 @@ export function initializeApp(dbPath: string = 'sightings.db'): Express {
 
   // API Routes
   app.use('/api/sightings', createSightingsRouter(db));
+
+  // Config endpoint - returns geofence configuration
+  app.get('/api/config', (_req: Request, res: Response): void => {
+    const config = getGeofenceConfig();
+    res.json(config);
+  });
 
   // Serve static files from public directory (only in production)
   if (process.env.NODE_ENV === 'production') {

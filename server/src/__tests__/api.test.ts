@@ -219,4 +219,22 @@ describe('API Endpoints', () => {
       await request(app).get('/api/sightings/invalid').expect(400);
     });
   });
+
+  describe('GET /api/config', () => {
+    it('should return geofence configuration', async () => {
+      const response = await request(app)
+        .get('/api/config')
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(response.body.centerLat).toBeDefined();
+      expect(response.body.centerLon).toBeDefined();
+      expect(response.body.radiusMiles).toBeDefined();
+      expect(response.body.geoname).toBeDefined();
+      expect(typeof response.body.centerLat).toBe('number');
+      expect(typeof response.body.centerLon).toBe('number');
+      expect(typeof response.body.radiusMiles).toBe('number');
+      expect(typeof response.body.geoname).toBe('string');
+    });
+  });
 });

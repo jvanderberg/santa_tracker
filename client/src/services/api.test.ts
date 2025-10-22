@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getSightings, createSighting } from './api';
+import { getSightings, createSighting, getConfig } from './api';
 import type { Sighting } from '../types';
+import type { GeofenceConfig } from '../lib/geofence';
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -116,6 +117,36 @@ describe('API Service', () => {
       });
 
       await expect(createSighting(newSighting)).rejects.toThrow('Failed to create sighting');
+    });
+  });
+
+  describe('getConfig', () => {
+    it('fetches geofence configuration', async () => {
+      const mockConfig: GeofenceConfig = {
+        centerLat: 41.8781,
+        centerLon: -87.7846,
+        radiusMiles: 5,
+        geoname: 'Oak Park, IL',
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockConfig,
+      });
+
+      const result = await getConfig();
+
+      expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/config');
+      expect(result).toEqual(mockConfig);
+    });
+
+    it('throws an error when fetch fails', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      });
+
+      await expect(getConfig()).rejects.toThrow('Failed to fetch config');
     });
   });
 });

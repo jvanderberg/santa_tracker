@@ -1,4 +1,5 @@
 import type { Sighting } from '../types';
+import type { GeofenceConfig } from '../lib/geofence';
 
 // In production, API is served from same origin. In dev, use separate port.
 const API_BASE_URL =
@@ -41,6 +42,16 @@ export async function createSighting(input: SightingInput): Promise<Sighting> {
 
   if (!response.ok) {
     throw new Error('Failed to create sighting');
+  }
+
+  return response.json();
+}
+
+export async function getConfig(): Promise<GeofenceConfig> {
+  const response = await fetch(`${API_BASE_URL}/config`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch config');
   }
 
   return response.json();
