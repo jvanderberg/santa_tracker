@@ -32,7 +32,7 @@ function App() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col">
+    <div className="fixed inset-0 flex flex-col">
       <Header onAddSighting={handleAddSighting} />
       <div className="flex-1">
         <Map key={refreshKey} />
