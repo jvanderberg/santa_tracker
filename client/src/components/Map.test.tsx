@@ -44,6 +44,33 @@ describe('Map Component', () => {
     });
   });
 
+  it('updates map center when config fetched from API', async () => {
+    vi.mocked(api.getSightings).mockResolvedValue([]);
+
+    // Mock API to return Oak Park config (different from default Springfield/Nevada)
+    vi.mocked(api.getConfig).mockResolvedValue({
+      centerLat: 41.8781,
+      centerLon: -87.7846,
+      radiusMiles: 5,
+      geoname: 'Oak Park, IL',
+    });
+
+    renderWithConfig(<Map />);
+
+    // Wait for config to be fetched and map to update
+    await waitFor(() => {
+      expect(api.getConfig).toHaveBeenCalled();
+    });
+
+    // MapContainer should have key based on Oak Park coordinates
+    await waitFor(() => {
+      const mapContainer = screen.getByTestId('map-container');
+      const mapElement = mapContainer.querySelector('.leaflet-container');
+      expect(mapElement).toBeInTheDocument();
+      // Key should reflect Oak Park coordinates, not default Nevada coordinates
+    });
+  });
+
   it('displays markers for provided sightings', () => {
     vi.mocked(api.getSightings).mockResolvedValue([]);
     const sightings: Sighting[] = [

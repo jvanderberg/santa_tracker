@@ -58,6 +58,11 @@ export function Map({ sightings: propSightings, filters }: MapProps) {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [currentTime, setCurrentTime] = useState<string>(formatCurrentTime(new Date()));
 
+  // Update map center when config changes (e.g., after API fetch)
+  useEffect(() => {
+    setMapCenter([config.centerLat, config.centerLon]);
+  }, [config.centerLat, config.centerLon]);
+
   useEffect(() => {
     // Only fetch if no sightings were provided via props
     if (propSightings !== undefined) {
