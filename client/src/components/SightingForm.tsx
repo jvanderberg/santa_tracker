@@ -65,11 +65,19 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
   const [details, setDetails] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Check if selected location is within geofence
   const isLocationValid =
     selectedLocation &&
     isWithinGeofence(selectedLocation.lat, selectedLocation.lng, geofenceConfig);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 200); // Fade-out duration
+  };
 
   const handleLocationSelect = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
@@ -103,7 +111,7 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
         longitude: selectedLocation.lng,
         details,
       });
-      onClose();
+      handleClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit sighting');
     } finally {
@@ -112,7 +120,10 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
   };
 
   return (
-    <div className="fixed inset-0" style={{ zIndex: 9999 }}>
+    <div
+      className={`fixed inset-0 transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+      style={{ zIndex: 9999 }}
+    >
       <style>{`
         .leaflet-top.leaflet-left {
           top: 50%;
@@ -150,7 +161,7 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
         <div className="flex items-center gap-1 mb-2">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-500 hover:text-gray-700 transition-colors"
             aria-label="Back"
           >

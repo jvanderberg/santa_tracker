@@ -53,23 +53,31 @@ describe('HelpPopup Component', () => {
   });
 
   it('calls onClose when backdrop is clicked', () => {
+    vi.useFakeTimers();
     const handleClose = vi.fn();
     render(<HelpPopup onClose={handleClose} geoname="Oak Park, IL" />);
 
     const backdrop = screen.getByTestId('help-popup-backdrop');
     fireEvent.click(backdrop);
 
+    // Animation delay before close
+    vi.advanceTimersByTime(300);
     expect(handleClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 
   it('calls onClose when X button is clicked', () => {
+    vi.useFakeTimers();
     const handleClose = vi.fn();
     render(<HelpPopup onClose={handleClose} geoname="Oak Park, IL" />);
 
     const closeButton = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeButton);
 
+    // Animation delay before close
+    vi.advanceTimersByTime(300);
     expect(handleClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 
   it('renders X button in upper right with sticky positioning', () => {
@@ -79,6 +87,14 @@ describe('HelpPopup Component', () => {
     expect(closeButton).toBeInTheDocument();
     // Button should have sticky positioning to stay visible when scrolling
     expect(closeButton).toHaveClass('sticky');
+  });
+
+  it('has animation classes for smooth entrance', () => {
+    render(<HelpPopup onClose={() => {}} geoname="Oak Park, IL" />);
+
+    const backdrop = screen.getByTestId('help-popup-backdrop');
+    // Backdrop should have fade-in animation
+    expect(backdrop.className).toMatch(/animate-/);
   });
 
   it('does not call onClose when popup content is clicked', () => {

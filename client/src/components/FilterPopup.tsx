@@ -16,6 +16,7 @@ interface FilterPopupProps {
 export function FilterPopup({ onApply, onClose, initialFilters, geoname }: FilterPopupProps) {
   const [timeHours, setTimeHours] = useState<FilterOptions['timeHours']>(initialFilters.timeHours);
   const [location, setLocation] = useState<FilterOptions['location']>(initialFilters.location);
+  const [isClosing, setIsClosing] = useState(false);
 
   const handleTimeChange = (value: FilterOptions['timeHours']) => {
     setTimeHours(value);
@@ -27,23 +28,36 @@ export function FilterPopup({ onApply, onClose, initialFilters, geoname }: Filte
     onApply({ timeHours, location: value });
   };
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 200); // Match scale-out animation duration
+  };
+
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
-      onClose();
+      handleClose();
     }
   };
 
   return (
     <div
       data-testid="filter-backdrop"
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 ${
+        !isClosing && 'animate-fade-in'
+      }`}
       style={{ zIndex: 9999 }}
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg p-6 max-w-md w-full relative">
+      <div
+        className={`bg-white rounded-lg p-6 max-w-md w-full relative ${
+          isClosing ? 'animate-scale-out' : 'animate-scale-in'
+        }`}
+      >
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 transition-colors"
           aria-label="Close"
         >

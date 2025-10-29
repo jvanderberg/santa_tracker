@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Sighting } from '../types';
 
 interface SightingDetailPopupProps {
@@ -7,6 +8,8 @@ interface SightingDetailPopupProps {
 }
 
 export function SightingDetailPopup({ sighting, onClose, onDelete }: SightingDetailPopupProps) {
+  const [isClosing, setIsClosing] = useState(false);
+
   // Convert GMT timestamp to local time
   const sightedDate = new Date(sighting.sighted_at);
   const reportedDate = new Date(sighting.reported_at);
@@ -23,14 +26,25 @@ export function SightingDetailPopup({ sighting, onClose, onDelete }: SightingDet
     });
   };
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 200);
+  };
+
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 ${
+        !isClosing && 'animate-fade-in'
+      }`}
       style={{ zIndex: 2000 }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
-        className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+        className={`bg-white rounded-lg shadow-xl max-w-md w-full p-6 ${
+          isClosing ? 'animate-scale-out' : 'animate-scale-in'
+        }`}
         onClick={e => e.stopPropagation()}
       >
         <h2 className="text-xl font-bold mb-4">Sighting Details</h2>

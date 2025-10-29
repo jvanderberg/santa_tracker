@@ -35,13 +35,17 @@ describe('SightingForm Component', () => {
   });
 
   it('calls onClose when back button is clicked', () => {
+    vi.useFakeTimers();
     const handleClose = vi.fn();
     renderWithConfig(<SightingForm onClose={handleClose} onSubmit={() => Promise.resolve()} />);
 
     const backButton = screen.getByRole('button', { name: /back/i });
     fireEvent.click(backButton);
 
+    // Animation delay before close
+    vi.advanceTimersByTime(200);
     expect(handleClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 
   it('displays error message when submission fails', async () => {

@@ -109,6 +109,7 @@ describe('FilterPopup Component', () => {
   });
 
   it('calls onClose when X button is clicked', () => {
+    vi.useFakeTimers();
     render(
       <FilterPopup
         onApply={mockOnApply}
@@ -120,7 +121,10 @@ describe('FilterPopup Component', () => {
 
     fireEvent.click(screen.getByLabelText('Close'));
 
+    // Animation delay before close
+    vi.advanceTimersByTime(200);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 
   it('can change time filter', () => {
@@ -156,6 +160,7 @@ describe('FilterPopup Component', () => {
   });
 
   it('closes when clicking outside the popup', () => {
+    vi.useFakeTimers();
     render(
       <FilterPopup
         onApply={mockOnApply}
@@ -169,6 +174,9 @@ describe('FilterPopup Component', () => {
     const backdrop = screen.getByTestId('filter-backdrop');
     fireEvent.click(backdrop);
 
+    // Animation delay before close
+    vi.advanceTimersByTime(200);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 });

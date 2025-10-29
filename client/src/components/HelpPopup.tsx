@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import { VERSION } from '../version';
 
@@ -7,21 +8,35 @@ interface HelpPopupProps {
 }
 
 export function HelpPopup({ onClose, geoname }: HelpPopupProps) {
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    // Wait for animation to complete before actually closing
+    setTimeout(() => {
+      onClose();
+    }, 300); // Match the longest exit animation duration
+  };
+
   return (
     <div
       data-testid="help-popup-backdrop"
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 ${
+        !isClosing && 'animate-fade-in'
+      }`}
       style={{ zIndex: 2000 }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
-        className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-y-scroll relative"
+        className={`bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-y-scroll relative ${
+          isClosing ? 'animate-slide-down' : 'animate-slide-up'
+        }`}
         onClick={e => e.stopPropagation()}
       >
         {/* X button in upper right - sticky to stay visible when scrolling */}
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           className="sticky top-4 right-4 float-right text-gray-500 hover:text-gray-700 transition-colors z-10 bg-white rounded-full p-1"
           aria-label="Close"
         >
