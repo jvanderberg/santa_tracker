@@ -132,7 +132,7 @@ describe('API Service', () => {
       const mockConfig: GeofenceConfig = {
         centerLat: 41.8781,
         centerLon: -87.7846,
-        radiusMiles: 5,
+        radiusMiles: 3,
         geoname: 'Oak Park, IL',
       };
 

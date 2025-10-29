@@ -1,11 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { Map } from './Map';
+import { ConfigProvider } from '../contexts/ConfigContext';
 import type { Sighting } from '../types';
 import * as api from '../services/api';
 
 // Mock the API module
 vi.mock('../services/api');
+
+// Helper to render with ConfigProvider
+function renderWithConfig(ui: React.ReactElement) {
+  return render(<ConfigProvider>{ui}</ConfigProvider>);
+}
 
 describe('Map Component', () => {
   beforeEach(() => {
@@ -14,14 +20,14 @@ describe('Map Component', () => {
     vi.mocked(api.getConfig).mockResolvedValue({
       centerLat: 38.5,
       centerLon: -117.0,
-      radiusMiles: 5,
+      radiusMiles: 3,
       geoname: 'Springfield',
     });
   });
 
   it('renders a map container', async () => {
     vi.mocked(api.getSightings).mockResolvedValue([]);
-    render(<Map />);
+    renderWithConfig(<Map />);
     await waitFor(() => {
       const mapContainer = screen.getByTestId('map-container');
       expect(mapContainer).toBeInTheDocument();
@@ -30,7 +36,7 @@ describe('Map Component', () => {
 
   it('centers on Springfield by default', async () => {
     vi.mocked(api.getSightings).mockResolvedValue([]);
-    render(<Map />);
+    renderWithConfig(<Map />);
     await waitFor(() => {
       const mapContainer = screen.getByTestId('map-container');
       // Leaflet map should be rendered inside
@@ -53,7 +59,7 @@ describe('Map Component', () => {
       },
     ];
 
-    render(<Map sightings={sightings} />);
+    renderWithConfig(<Map sightings={sightings} />);
     const mapContainer = screen.getByTestId('map-container');
     expect(mapContainer).toBeInTheDocument();
   });
@@ -74,7 +80,7 @@ describe('Map Component', () => {
 
     vi.mocked(api.getSightings).mockResolvedValue(mockSightings);
 
-    render(<Map />);
+    renderWithConfig(<Map />);
 
     await waitFor(() => {
       expect(api.getSightings).toHaveBeenCalledTimes(1);
@@ -86,7 +92,7 @@ describe('Map Component', () => {
       () => new Promise(resolve => setTimeout(() => resolve([]), 100))
     );
 
-    render(<Map />);
+    renderWithConfig(<Map />);
 
     expect(screen.getByText('Loading sightings...')).toBeInTheDocument();
 
@@ -98,7 +104,7 @@ describe('Map Component', () => {
   it('displays error message when fetch fails', async () => {
     vi.mocked(api.getSightings).mockRejectedValue(new Error('Network error'));
 
-    render(<Map />);
+    renderWithConfig(<Map />);
 
     await waitFor(() => {
       expect(screen.getByText(/Failed to load sightings/i)).toBeInTheDocument();
@@ -108,7 +114,7 @@ describe('Map Component', () => {
   it('displays current time in legend', async () => {
     vi.mocked(api.getSightings).mockResolvedValue([]);
 
-    render(<Map />);
+    renderWithConfig(<Map />);
 
     await waitFor(() => {
       const mapContainer = screen.getByTestId('map-container');

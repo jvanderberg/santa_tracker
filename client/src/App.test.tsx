@@ -16,7 +16,7 @@ describe('App', () => {
     vi.mocked(api.getConfig).mockResolvedValue({
       centerLat: 38.5,
       centerLon: -117.0,
-      radiusMiles: 5,
+      radiusMiles: 3,
       geoname: 'Springfield',
     });
     render(<App />);

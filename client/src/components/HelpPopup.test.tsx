@@ -29,6 +29,18 @@ describe('HelpPopup Component', () => {
     expect(screen.getByText(/Filtering Sightings/i)).toBeInTheDocument();
     expect(screen.getByText(/Report a Sighting/i)).toBeInTheDocument();
     expect(screen.getByText(/Auto-Updates/i)).toBeInTheDocument();
+    expect(screen.getByText(/Privacy/i)).toBeInTheDocument();
+  });
+
+  it('displays privacy message', () => {
+    render(<HelpPopup onClose={() => {}} geoname="Oak Park, IL" />);
+
+    expect(
+      screen.getByText(/All sightings are anonymous and no user data is stored or tracked/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/wouldn't want anyone to get on the naughty list/i)
+    ).toBeInTheDocument();
   });
 
   it('displays marker color information', () => {
@@ -50,7 +62,7 @@ describe('HelpPopup Component', () => {
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when close button is clicked', () => {
+  it('calls onClose when X button is clicked', () => {
     const handleClose = vi.fn();
     render(<HelpPopup onClose={handleClose} geoname="Oak Park, IL" />);
 
@@ -58,6 +70,15 @@ describe('HelpPopup Component', () => {
     fireEvent.click(closeButton);
 
     expect(handleClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders X button in upper right with sticky positioning', () => {
+    render(<HelpPopup onClose={() => {}} geoname="Oak Park, IL" />);
+
+    const closeButton = screen.getByRole('button', { name: /close/i });
+    expect(closeButton).toBeInTheDocument();
+    // Button should have sticky positioning to stay visible when scrolling
+    expect(closeButton).toHaveClass('sticky');
   });
 
   it('does not call onClose when popup content is clicked', () => {

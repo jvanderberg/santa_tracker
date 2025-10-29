@@ -1,16 +1,10 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
-import {
-  adminLogin,
-  testAdminAuth,
-  getSightings,
-  deleteSighting,
-  getConfig,
-} from '../services/api';
+import { adminLogin, testAdminAuth, getSightings, deleteSighting } from '../services/api';
 import { SightingDetailPopup } from '../components/SightingDetailPopup';
 import type { Sighting } from '../types';
-import { getGeofenceConfig } from '../lib/geofence';
+import { useConfig } from '../contexts/ConfigContext';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
@@ -44,6 +38,7 @@ function createColoredIcon(color: string) {
 }
 
 export function AdminPage() {
+  const geofenceConfig = useConfig();
   const [passphrase, setPassphrase] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
@@ -51,12 +46,6 @@ export function AdminPage() {
   const [sightings, setSightings] = useState<Sighting[]>([]);
   const [selectedSighting, setSelectedSighting] = useState<Sighting | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [geofenceConfig, setGeofenceConfig] = useState(getGeofenceConfig());
-
-  // Fetch geofence config on mount
-  useEffect(() => {
-    getConfig().then(setGeofenceConfig).catch(console.error);
-  }, []);
 
   // Check for existing token on mount
   useEffect(() => {

@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SightingForm } from './SightingForm';
+import { ConfigProvider } from '../contexts/ConfigContext';
 import * as api from '../services/api';
 
 // Mock the API module
 vi.mock('../services/api');
+
+// Helper to render with ConfigProvider
+function renderWithConfig(ui: React.ReactElement) {
+  return render(<ConfigProvider>{ui}</ConfigProvider>);
+}
 
 describe('SightingForm Component', () => {
   beforeEach(() => {
@@ -13,34 +19,34 @@ describe('SightingForm Component', () => {
     vi.mocked(api.getConfig).mockResolvedValue({
       centerLat: 38.5,
       centerLon: -117.0,
-      radiusMiles: 5,
+      radiusMiles: 3,
       geoname: 'Springfield',
     });
   });
 
   it('renders form with map picker and use location button', () => {
-    render(<SightingForm onClose={() => {}} onSubmit={() => Promise.resolve()} />);
+    renderWithConfig(<SightingForm onClose={() => {}} onSubmit={() => Promise.resolve()} />);
 
     expect(screen.getByText(/click on map/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /use current location/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/details/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/what did you see/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument();
   });
 
-  it('calls onClose when cancel button is clicked', () => {
+  it('calls onClose when back button is clicked', () => {
     const handleClose = vi.fn();
-    render(<SightingForm onClose={handleClose} onSubmit={() => Promise.resolve()} />);
+    renderWithConfig(<SightingForm onClose={handleClose} onSubmit={() => Promise.resolve()} />);
 
-    const cancelButton = screen.getByRole('button', { name: /cancel/i });
-    fireEvent.click(cancelButton);
+    const backButton = screen.getByRole('button', { name: /back/i });
+    fireEvent.click(backButton);
 
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
   it('displays error message when submission fails', async () => {
     const handleSubmit = vi.fn(() => Promise.reject(new Error('Network error')));
-    render(
+    renderWithConfig(
       <SightingForm
         onClose={() => {}}
         onSubmit={handleSubmit}
@@ -48,7 +54,7 @@ describe('SightingForm Component', () => {
       />
     );
 
-    const detailsInput = screen.getByLabelText(/details/i);
+    const detailsInput = screen.getByLabelText(/what did you see/i);
     const submitButton = screen.getByRole('button', { name: /submit/i });
 
     fireEvent.change(detailsInput, { target: { value: 'Santa spotted!' } });
@@ -60,14 +66,14 @@ describe('SightingForm Component', () => {
   });
 
   it('disables submit button when no location is selected', () => {
-    render(<SightingForm onClose={() => {}} onSubmit={() => Promise.resolve()} />);
+    renderWithConfig(<SightingForm onClose={() => {}} onSubmit={() => Promise.resolve()} />);
 
     const submitButton = screen.getByRole('button', { name: /submit/i });
     expect(submitButton).toBeDisabled();
   });
 
   it('enables submit button when location is provided', () => {
-    render(
+    renderWithConfig(
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}
@@ -80,8 +86,8 @@ describe('SightingForm Component', () => {
   });
 
   it('shows warning when location is outside geofence', () => {
-    // 10 miles north of Springfield - outside 5 mile radius
-    render(
+    // 10 miles north of Springfield - outside 3 mile radius
+    renderWithConfig(
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}
@@ -90,12 +96,12 @@ describe('SightingForm Component', () => {
     );
 
     expect(screen.getByText(/outside the springfield area/i)).toBeInTheDocument();
-    expect(screen.getByText(/within 5 miles/i)).toBeInTheDocument();
+    expect(screen.getByText(/within 3 miles/i)).toBeInTheDocument();
   });
 
   it('disables submit button when location is outside geofence', () => {
-    // 10 miles north of Springfield - outside 5 mile radius
-    render(
+    // 10 miles north of Springfield - outside 3 mile radius
+    renderWithConfig(
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}
@@ -108,8 +114,8 @@ describe('SightingForm Component', () => {
   });
 
   it('shows no warning when location is inside geofence', () => {
-    // 1 mile north of Springfield - inside 5 mile radius
-    render(
+    // 1 mile north of Springfield - inside 3 mile radius
+    renderWithConfig(
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}
@@ -125,7 +131,7 @@ describe('SightingForm Component', () => {
     // In a real browser, this would render as an SVG circle on the map
     // In jsdom test environment, the Circle may not fully render due to Leaflet limitations
     // but we can verify the component renders without errors
-    const { container } = render(
+    const { container } = renderWithConfig(
       <SightingForm onClose={() => {}} onSubmit={() => Promise.resolve()} />
     );
 
@@ -139,15 +145,15 @@ describe('SightingForm Component', () => {
     vi.mocked(api.getConfig).mockResolvedValue({
       centerLat: 41.8781,
       centerLon: -87.7846,
-      radiusMiles: 5,
+      radiusMiles: 3,
       geoname: 'Oak Park, IL',
     });
 
     // This location is valid for Oak Park but NOT valid for Springfield
     // Oak Park center: 41.8781, -87.7846
-    // This location: 41.88, -87.78 (< 5 miles from Oak Park)
+    // This location: 41.88, -87.78 (< 3 miles from Oak Park)
     // Springfield center: 38.5, -117.0 (hundreds of miles away)
-    render(
+    renderWithConfig(
       <SightingForm
         onClose={() => {}}
         onSubmit={() => Promise.resolve()}

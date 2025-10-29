@@ -12,14 +12,14 @@ export interface GeofenceConfig {
 
 /**
  * Get default geofence configuration
- * Defaults: Springfield (38.5, -117.0) with 5 mile radius
+ * Defaults: Springfield (38.5, -117.0) with 3 mile radius
  * Note: In production, fetch actual config from /api/config
  */
 export function getGeofenceConfig(): GeofenceConfig {
   return {
     centerLat: 38.5,
     centerLon: -117.0,
-    radiusMiles: 5,
+    radiusMiles: 3,
     geoname: 'Springfield',
   };
 }

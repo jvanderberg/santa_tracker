@@ -82,7 +82,7 @@ describe('API Endpoints', () => {
     });
 
     it('should return 400 for sighting outside geofence', async () => {
-      // Point approximately 10 miles north of Springfield (outside 5 mile default radius)
+      // Point approximately 10 miles north of Springfield (outside 3 mile default radius)
       const outsideGeofence = {
         latitude: 38.645,
         longitude: -117.0,
@@ -97,7 +97,7 @@ describe('API Endpoints', () => {
     });
 
     it('should accept sighting inside geofence', async () => {
-      // Point approximately 1 mile from Springfield (inside 5 mile default radius)
+      // Point approximately 1 mile from Springfield (inside 3 mile default radius)
       const insideGeofence = {
         latitude: 38.5145, // ~1 mile north
         longitude: -117.0,

@@ -1,11 +1,34 @@
 # Santa Tracker Project
 
 ## Development Approach
+
+## ⚠️ STOP! READ THIS BEFORE ANY CODE CHANGES ⚠️
+
 **ALL CODE MUST BE DEVELOPED USING STRICT RED/GREEN TDD**
-- Write failing tests first (RED)
-- Write minimal code to pass tests (GREEN)
-- Refactor if needed
-- No code without tests
+
+### NEVER:
+❌ Write code without tests first
+❌ Make UI changes without updating tests
+❌ Use Edit/Write tools before showing test updates
+❌ Commit anything without running ALL tests
+❌ Skip or defer test writing for "later"
+
+### ALWAYS:
+✅ Write failing test FIRST (RED)
+✅ Show test failure output
+✅ Write minimal code to pass (GREEN)
+✅ Run tests and show results
+✅ Refactor if needed (keeping tests green)
+
+### Pre-Code Change Checklist
+Before using Edit or Write tools, you MUST:
+- [ ] Write/update the failing test
+- [ ] Run tests to show the failure (RED)
+- [ ] Write minimal code to pass the test
+- [ ] Run tests to show success (GREEN)
+- [ ] Verify ALL tests still pass (not just the new one)
+
+**If you catch yourself about to edit code without updating tests first, STOP IMMEDIATELY.**
 
 ## Error Handling Philosophy
 **PREVENT ERRORS UP FRONT, COMMUNICATE CLEARLY WHEN UNAVOIDABLE**

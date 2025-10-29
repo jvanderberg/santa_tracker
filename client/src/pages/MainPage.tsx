@@ -1,27 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Map } from '../components/Map';
 import { Header } from '../components/Header';
 import { SightingForm } from '../components/SightingForm';
 import { FilterPopup, type FilterOptions } from '../components/FilterPopup';
 import { HelpPopup } from '../components/HelpPopup';
-import { createSighting, getConfig } from '../services/api';
-import { getGeofenceConfig } from '../lib/geofence';
+import { createSighting } from '../services/api';
+import { useConfig } from '../contexts/ConfigContext';
 
 export function MainPage() {
+  const config = useConfig();
   const [showForm, setShowForm] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<FilterOptions>({ timeHours: 24, location: 'geofence' });
-  const [geoname, setGeoname] = useState(getGeofenceConfig().geoname);
-
-  useEffect(() => {
-    getConfig()
-      .then(config => setGeoname(config.geoname))
-      .catch(() => {
-        // Silently fall back to default if API fails
-      });
-  }, []);
 
   const handleAddSighting = () => {
     setShowForm(true);
@@ -41,7 +33,6 @@ export function MainPage() {
 
   const handleApplyFilter = (newFilters: FilterOptions) => {
     setFilters(newFilters);
-    setShowFilter(false);
   };
 
   const handleOpenHelp = () => {
@@ -82,10 +73,10 @@ export function MainPage() {
           onApply={handleApplyFilter}
           onClose={handleCloseFilter}
           initialFilters={filters}
-          geoname={geoname}
+          geoname={config.geoname}
         />
       )}
-      {showHelp && <HelpPopup onClose={handleCloseHelp} geoname={geoname} />}
+      {showHelp && <HelpPopup onClose={handleCloseHelp} geoname={config.geoname} />}
     </div>
   );
 }

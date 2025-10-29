@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { VERSION } from '../version';
 
 interface HelpPopupProps {
@@ -14,10 +15,20 @@ export function HelpPopup({ onClose, geoname }: HelpPopupProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+        className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-y-scroll relative"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6">
+        {/* X button in upper right - sticky to stay visible when scrolling */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="sticky top-4 right-4 float-right text-gray-500 hover:text-gray-700 transition-colors z-10 bg-white rounded-full p-1"
+          aria-label="Close"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="p-6 pr-12 clear-right">
           <div className="mb-4">
             <p className="text-lg font-semibold text-gray-800 mb-2">
               We hear Santa has been in the neighborhood. So exciting! Santa! Use this app to track
@@ -71,18 +82,19 @@ export function HelpPopup({ onClose, geoname }: HelpPopupProps) {
                 The map refreshes every minute to show the latest sightings.
               </p>
             </section>
+
+            <section>
+              <h3 className="font-semibold text-gray-800 mb-2">🔒 Privacy</h3>
+              <p className="text-sm text-gray-700">
+                All sightings are anonymous and no user data is stored or tracked, we wouldn't want
+                anyone to get on the naughty list would we.
+              </p>
+            </section>
           </div>
 
           <div className="mt-6 text-center">
             <p className="text-xs italic text-gray-400">{VERSION}</p>
           </div>
-
-          <button
-            onClick={onClose}
-            className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>

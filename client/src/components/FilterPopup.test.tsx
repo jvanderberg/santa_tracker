@@ -81,7 +81,7 @@ describe('FilterPopup Component', () => {
     expect(radio.checked).toBe(true);
   });
 
-  it('calls onApply with selected filters when Apply is clicked', () => {
+  it('auto-applies filters when options are selected', () => {
     render(
       <FilterPopup
         onApply={mockOnApply}
@@ -91,14 +91,16 @@ describe('FilterPopup Component', () => {
       />
     );
 
-    // Select 4 hours
+    // Select 4 hours - should auto-apply
     fireEvent.click(screen.getByLabelText('Last 4 hours'));
 
-    // Select Near me
-    fireEvent.click(screen.getByLabelText('Near me (within 0.25 miles)'));
+    expect(mockOnApply).toHaveBeenCalledWith({
+      timeHours: 4,
+      location: 'geofence',
+    });
 
-    // Click Apply
-    fireEvent.click(screen.getByText('Apply'));
+    // Select Near me - should auto-apply
+    fireEvent.click(screen.getByLabelText('Near me (within 0.25 miles)'));
 
     expect(mockOnApply).toHaveBeenCalledWith({
       timeHours: 4,
@@ -106,7 +108,7 @@ describe('FilterPopup Component', () => {
     });
   });
 
-  it('calls onClose when Cancel is clicked', () => {
+  it('calls onClose when X button is clicked', () => {
     render(
       <FilterPopup
         onApply={mockOnApply}
@@ -116,7 +118,7 @@ describe('FilterPopup Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Cancel'));
+    fireEvent.click(screen.getByLabelText('Close'));
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });

@@ -1,7 +1,8 @@
-import { useState, useEffect, type FormEvent } from 'react';
-import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
-import { isWithinGeofence, getGeofenceConfig, type GeofenceConfig } from '../lib/geofence';
-import { getConfig } from '../services/api';
+import { useState, type FormEvent } from 'react';
+import { MapContainer, TileLayer, Marker, Circle, useMapEvents, ZoomControl } from 'react-leaflet';
+import { isWithinGeofence } from '../lib/geofence';
+import { useConfig } from '../contexts/ConfigContext';
+import { ChevronLeft, MapPin } from 'lucide-react';
 
 interface SightingFormData {
   latitude: number;
@@ -49,8 +50,7 @@ function GeofenceCircle({
       radius={config.radiusMiles * METERS_PER_MILE}
       pathOptions={{
         color: '#ef4444',
-        fillColor: '#ef4444',
-        fillOpacity: 0.1,
+        fillOpacity: 0,
         weight: 2,
       }}
     />
@@ -58,22 +58,13 @@ function GeofenceCircle({
 }
 
 export function SightingForm({ onClose, onSubmit, location }: SightingFormProps) {
+  const geofenceConfig = useConfig();
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(
     location ? { lat: location.latitude, lng: location.longitude } : null
   );
   const [details, setDetails] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [geofenceConfig, setGeofenceConfig] = useState<GeofenceConfig>(getGeofenceConfig());
-
-  // Fetch config from API on mount
-  useEffect(() => {
-    getConfig()
-      .then(config => setGeofenceConfig(config))
-      .catch(() => {
-        // Silently fall back to default if API fails
-      });
-  }, []);
 
   // Check if selected location is within geofence
   const isLocationValid =
@@ -121,97 +112,103 @@ export function SightingForm({ onClose, onSubmit, location }: SightingFormProps)
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-      style={{ zIndex: 9999 }}
-    >
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full relative">
-        <h2 className="text-2xl font-bold mb-4">Report Santa Sighting</h2>
+    <div className="fixed inset-0" style={{ zIndex: 9999 }}>
+      <style>{`
+        .leaflet-top.leaflet-left {
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      `}</style>
+      {/* Full-page map */}
+      <MapContainer
+        key={`${geofenceConfig.centerLat}-${geofenceConfig.centerLon}`}
+        center={
+          selectedLocation
+            ? [selectedLocation.lat, selectedLocation.lng]
+            : [geofenceConfig.centerLat, geofenceConfig.centerLon]
+        }
+        zoom={13}
+        className="h-full w-full"
+        scrollWheelZoom={true}
+        zoomControl={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <ZoomControl position="topleft" />
+        <GeofenceCircle config={geofenceConfig} />
+        <LocationPicker
+          position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null}
+          onLocationSelect={handleLocationSelect}
+        />
+      </MapContainer>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">Location</label>
-              <button
-                type="button"
-                onClick={handleUseCurrentLocation}
-                className="text-sm text-red-600 hover:text-red-700 font-medium"
-              >
-                Use Current Location
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 mb-2">Click on map to select location</p>
-            <div className="h-64 border border-gray-300 rounded-md overflow-hidden">
-              <MapContainer
-                key={`${geofenceConfig.centerLat}-${geofenceConfig.centerLon}`}
-                center={
-                  selectedLocation
-                    ? [selectedLocation.lat, selectedLocation.lng]
-                    : [geofenceConfig.centerLat, geofenceConfig.centerLon]
-                }
-                zoom={13}
-                className="h-full w-full"
-                scrollWheelZoom={false}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <GeofenceCircle config={geofenceConfig} />
-                <LocationPicker
-                  position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null}
-                  onLocationSelect={handleLocationSelect}
-                />
-              </MapContainer>
-            </div>
-            {selectedLocation && (
-              <p className="text-xs text-gray-500 mt-1">
-                {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
-              </p>
-            )}
-            {selectedLocation && !isLocationValid && (
-              <p className="text-sm text-red-600 mt-2">
-                Location is outside the {geofenceConfig.geoname} area. Please select a location
-                within {geofenceConfig.radiusMiles} miles.
-              </p>
-            )}
-          </div>
+      {/* Floating header with instructions */}
+      <div className="absolute top-4 left-4 right-4 bg-white bg-opacity-95 rounded-lg shadow-lg p-3 z-[1000]">
+        {/* Header with back button */}
+        <div className="flex items-center gap-1 mb-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+            aria-label="Back"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <h2 className="text-lg font-bold">Report Santa Sighting</h2>
+        </div>
+        <button
+          type="button"
+          onClick={handleUseCurrentLocation}
+          className="flex items-center gap-2 px-3 py-2 mb-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-md font-medium transition-colors"
+        >
+          <MapPin size={16} />
+          Use Current Location
+        </button>
+        <p className="text-sm text-gray-600 mb-1">Click on map to select location</p>
+        {selectedLocation && (
+          <p className="text-xs text-gray-500">
+            {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
+          </p>
+        )}
+        {selectedLocation && !isLocationValid && (
+          <p className="text-sm text-red-600 mt-1">
+            Location is outside the {geofenceConfig.geoname} area. Please select a location within{' '}
+            {geofenceConfig.radiusMiles} miles.
+          </p>
+        )}
+      </div>
 
+      {/* Floating form at bottom */}
+      <form onSubmit={handleSubmit} className="absolute bottom-4 left-4 right-4 z-[1000]">
+        <div className="bg-white bg-opacity-95 rounded-lg shadow-lg p-4 space-y-3">
           <div>
             <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
-              Details
+              What did you see?
             </label>
             <textarea
               id="details"
               value={details}
               onChange={e => setDetails(e.target.value)}
               required
-              rows={3}
+              rows={2}
               placeholder="Describe what you saw..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
-          {error && <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm">{error}</div>}
+          {error && <div className="p-2 bg-red-50 text-red-600 rounded-md text-sm">{error}</div>}
 
-          <div className="flex gap-2 justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting || !selectedLocation || !isLocationValid}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? 'Submitting...' : 'Submit'}
-            </button>
-          </div>
-        </form>
-      </div>
+          <button
+            type="submit"
+            disabled={submitting || !selectedLocation || !isLocationValid}
+            className="w-full px-4 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            {submitting ? 'Submitting...' : 'Submit Sighting'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AdminPage } from './AdminPage';
+import { ConfigProvider } from '../contexts/ConfigContext';
 import * as api from '../services/api';
 
 // Mock the API module
 vi.mock('../services/api');
+
+// Helper to render with ConfigProvider
+function renderWithConfig(ui: React.ReactElement) {
+  return render(<ConfigProvider>{ui}</ConfigProvider>);
+}
 
 describe('AdminPage Component', () => {
   beforeEach(() => {
@@ -15,13 +21,13 @@ describe('AdminPage Component', () => {
     vi.mocked(api.getConfig).mockResolvedValue({
       centerLat: 41.8781,
       centerLon: -87.7846,
-      radiusMiles: 5,
+      radiusMiles: 3,
       geoname: 'Oak Park, IL',
     });
   });
 
   it('renders passphrase input form when not authenticated', () => {
-    render(<AdminPage />);
+    renderWithConfig(<AdminPage />);
 
     expect(screen.getByLabelText(/passphrase/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
@@ -32,7 +38,7 @@ describe('AdminPage Component', () => {
     vi.mocked(api.testAdminAuth).mockResolvedValue(true);
     vi.mocked(api.getSightings).mockResolvedValue([]);
 
-    render(<AdminPage />);
+    renderWithConfig(<AdminPage />);
 
     const passphraseInput = screen.getByLabelText(/passphrase/i);
     const submitButton = screen.getByRole('button', { name: /submit/i });
@@ -52,7 +58,7 @@ describe('AdminPage Component', () => {
     vi.mocked(api.adminLogin).mockResolvedValue('mock-jwt-token');
     vi.mocked(api.testAdminAuth).mockResolvedValue(false);
 
-    render(<AdminPage />);
+    renderWithConfig(<AdminPage />);
 
     const passphraseInput = screen.getByLabelText(/passphrase/i);
     const submitButton = screen.getByRole('button', { name: /submit/i });
@@ -68,7 +74,7 @@ describe('AdminPage Component', () => {
   it('shows "Failed to authenticate" when login throws error', async () => {
     vi.mocked(api.adminLogin).mockRejectedValue(new Error('Invalid passphrase'));
 
-    render(<AdminPage />);
+    renderWithConfig(<AdminPage />);
 
     const passphraseInput = screen.getByLabelText(/passphrase/i);
     const submitButton = screen.getByRole('button', { name: /submit/i });
@@ -86,7 +92,7 @@ describe('AdminPage Component', () => {
     vi.mocked(api.testAdminAuth).mockResolvedValue(true);
     vi.mocked(api.getSightings).mockResolvedValue([]);
 
-    render(<AdminPage />);
+    renderWithConfig(<AdminPage />);
 
     const passphraseInput = screen.getByLabelText(/passphrase/i);
     const submitButton = screen.getByRole('button', { name: /submit/i });
@@ -107,7 +113,7 @@ describe('AdminPage Component', () => {
     vi.mocked(api.testAdminAuth).mockResolvedValue(true);
     vi.mocked(api.getSightings).mockResolvedValue([]);
 
-    render(<AdminPage />);
+    renderWithConfig(<AdminPage />);
 
     await waitFor(() => {
       expect(screen.getByText('Admin Panel')).toBeInTheDocument();
@@ -121,7 +127,7 @@ describe('AdminPage Component', () => {
     sessionStorage.setItem('adminToken', 'invalid-token');
     vi.mocked(api.testAdminAuth).mockResolvedValue(false);
 
-    render(<AdminPage />);
+    renderWithConfig(<AdminPage />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/passphrase/i)).toBeInTheDocument();

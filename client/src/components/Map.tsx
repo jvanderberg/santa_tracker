@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import type { Sighting } from '../types';
-import { getSightings, getConfig } from '../services/api';
-import { getGeofenceConfig, calculateDistance } from '../lib/geofence';
+import { getSightings } from '../services/api';
+import { calculateDistance } from '../lib/geofence';
 import { formatTimeAgo } from '../lib/timeFormat';
 import { formatCurrentTime } from '../lib/formatCurrentTime';
+import { useConfig } from '../contexts/ConfigContext';
 import type { FilterOptions } from './FilterPopup';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
@@ -46,24 +47,16 @@ interface MapProps {
 }
 
 export function Map({ sightings: propSightings, filters }: MapProps) {
+  const config = useConfig();
   const [fetchedSightings, setFetchedSightings] = useState<Sighting[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([
-    getGeofenceConfig().centerLat,
-    getGeofenceConfig().centerLon,
+    config.centerLat,
+    config.centerLon,
   ]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [currentTime, setCurrentTime] = useState<string>(formatCurrentTime(new Date()));
-
-  // Fetch config to set map center
-  useEffect(() => {
-    getConfig()
-      .then(config => setMapCenter([config.centerLat, config.centerLon]))
-      .catch(() => {
-        // Silently fall back to default if API fails
-      });
-  }, []);
 
   useEffect(() => {
     // Only fetch if no sightings were provided via props

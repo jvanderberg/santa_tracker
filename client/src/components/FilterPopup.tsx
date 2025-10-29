@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
 
 export interface FilterOptions {
   timeHours: 1 | 4 | 12 | 24;
@@ -16,8 +17,14 @@ export function FilterPopup({ onApply, onClose, initialFilters, geoname }: Filte
   const [timeHours, setTimeHours] = useState<FilterOptions['timeHours']>(initialFilters.timeHours);
   const [location, setLocation] = useState<FilterOptions['location']>(initialFilters.location);
 
-  const handleApply = () => {
-    onApply({ timeHours, location });
+  const handleTimeChange = (value: FilterOptions['timeHours']) => {
+    setTimeHours(value);
+    onApply({ timeHours: value, location });
+  };
+
+  const handleLocationChange = (value: FilterOptions['location']) => {
+    setLocation(value);
+    onApply({ timeHours, location: value });
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -33,8 +40,16 @@ export function FilterPopup({ onApply, onClose, initialFilters, geoname }: Filte
       style={{ zIndex: 9999 }}
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-6">Filter Sightings</h2>
+      <div className="bg-white rounded-lg p-6 max-w-md w-full relative">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 transition-colors"
+          aria-label="Close"
+        >
+          <X size={24} />
+        </button>
+        <h2 className="text-2xl font-bold mb-6 pr-8">Filter Sightings</h2>
 
         {/* Time Filter */}
         <div className="mb-6">
@@ -55,7 +70,7 @@ export function FilterPopup({ onApply, onClose, initialFilters, geoname }: Filte
                   name="time"
                   value={option.value}
                   checked={timeHours === option.value}
-                  onChange={() => setTimeHours(option.value as FilterOptions['timeHours'])}
+                  onChange={() => handleTimeChange(option.value as FilterOptions['timeHours'])}
                   className="w-5 h-5 text-red-600 focus:ring-red-500"
                 />
                 <span className="text-base">{option.label}</span>
@@ -74,7 +89,7 @@ export function FilterPopup({ onApply, onClose, initialFilters, geoname }: Filte
                 name="location"
                 value="nearme"
                 checked={location === 'nearme'}
-                onChange={() => setLocation('nearme')}
+                onChange={() => handleLocationChange('nearme')}
                 className="w-5 h-5 text-red-600 focus:ring-red-500"
               />
               <span className="text-base">Near me (within 0.25 miles)</span>
@@ -85,28 +100,12 @@ export function FilterPopup({ onApply, onClose, initialFilters, geoname }: Filte
                 name="location"
                 value="geofence"
                 checked={location === 'geofence'}
-                onChange={() => setLocation('geofence')}
+                onChange={() => handleLocationChange('geofence')}
                 className="w-5 h-5 text-red-600 focus:ring-red-500"
               />
               <span className="text-base">{geoname}</span>
             </label>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium text-base"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleApply}
-            className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-base"
-          >
-            Apply
-          </button>
         </div>
       </div>
     </div>

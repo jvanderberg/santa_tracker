@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-import { getConfig } from '../services/api';
-import { getGeofenceConfig } from '../lib/geofence';
+import { useConfig } from '../contexts/ConfigContext';
 
 interface HeaderProps {
   onAddSighting: () => void;
@@ -9,22 +7,14 @@ interface HeaderProps {
 }
 
 export function Header({ onAddSighting, onOpenFilter, onOpenHelp }: HeaderProps) {
-  const [geoname, setGeoname] = useState(getGeofenceConfig().geoname);
-
-  useEffect(() => {
-    getConfig()
-      .then(config => setGeoname(config.geoname))
-      .catch(() => {
-        // Silently fall back to default if API fails
-      });
-  }, []);
+  const config = useConfig();
 
   return (
     <header className="bg-red-600 text-white p-4 shadow-md">
       <div className="container mx-auto flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Santa Tracker</h1>
-          <p className="text-sm">{geoname}</p>
+          <p className="text-sm">{config.geoname}</p>
         </div>
         <div className="flex gap-2">
           <button

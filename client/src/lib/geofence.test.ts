@@ -8,7 +8,7 @@ describe('Geofence Utilities', () => {
 
       expect(config.centerLat).toBe(38.5);
       expect(config.centerLon).toBe(-117.0);
-      expect(config.radiusMiles).toBe(5);
+      expect(config.radiusMiles).toBe(3);
       expect(config.geoname).toBe('Springfield');
     });
   });
@@ -46,16 +46,16 @@ describe('Geofence Utilities', () => {
     });
 
     it('returns true for location just inside radius boundary', () => {
-      // Calculate a point ~4.9 miles north
-      // 1 degree latitude ≈ 69 miles, so 4.9 miles ≈ 0.071 degrees
-      const lat = 38.5 + 0.071;
+      // Calculate a point ~2.9 miles north
+      // 1 degree latitude ≈ 69 miles, so 2.9 miles ≈ 0.042 degrees
+      const lat = 38.5 + 0.042;
       expect(isWithinGeofence(lat, -117.0)).toBe(true);
     });
 
     it('returns false for location just outside radius boundary', () => {
-      // Calculate a point ~5.1 miles north
-      // 1 degree latitude ≈ 69 miles, so 5.1 miles ≈ 0.074 degrees
-      const lat = 38.5 + 0.074;
+      // Calculate a point ~3.1 miles north
+      // 1 degree latitude ≈ 69 miles, so 3.1 miles ≈ 0.045 degrees
+      const lat = 38.5 + 0.045;
       expect(isWithinGeofence(lat, -117.0)).toBe(false);
     });
   });
